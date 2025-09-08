@@ -22,7 +22,7 @@ it('can create, update, and delete a namespace', function () {
     $this->assertDatabaseMissing('namespaces', ['id' => $id]);
 });
 
-it('can read with include all relationships', function () {
+it('can read with include all relationships namespace', function () {
     $this->seed(DatabaseSeeder::class);
 
     $ns = Namespaces::query()
