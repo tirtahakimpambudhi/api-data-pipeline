@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class Users extends Authenticatable
@@ -69,5 +70,20 @@ class Users extends Authenticatable
         return $this->belongsTo(Roles::class, 'role_id');
     }
 
+    public function hasPermission(string $resourceType, string $action): bool {
+        if (! $this->role_id) return false;
 
+        $key = "role_perms:{$this->role_id}";
+        $abilities = Cache::rememberForever($key, function () {
+            return Permissions::query()
+                ->select('resource_type','action')
+                ->join('role_permission','permissions.id','=','role_permission.permission_id')
+                ->where('role_permission.role_id',$this->role_id)
+                ->get()
+                ->map(fn($p) => "{$p->resource_type}.{$p->action}")
+                ->all();
+        });
+
+        return in_array("{$resourceType}.{$action}", $abilities, true);
+    }
 }
