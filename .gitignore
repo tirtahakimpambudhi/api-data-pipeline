@@ -10,12 +10,10 @@
 /storage/*.key
 /storage/pail
 /vendor
-!.env.example
-!.env.example.mysql
 .env
 .env.backup
+.env.mysql
 .env.production
-**.env**
 **commit.sh**
 tmp
 .phpactor.json
