@@ -1,31 +1,40 @@
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { channels, configuration, dashboard, environments, namespace, services } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
-import AppLogo from './app-logo';
+import { FolderTree, LayoutDashboard, Network, Radio, ServerCog, Settings } from 'lucide-react';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
+        icon: LayoutDashboard,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
+        title: 'Namespaces',
+        href: namespace(),
+        icon: FolderTree,
+    },
+    {
+        title: 'Services',
+        href: services(),
+        icon: ServerCog,
+    },
+    {
+        title: 'Environments',
+        href: environments(),
+        icon: Network,
+    },
+    {
+        title: 'Channels',
+        href: channels(),
+        icon: Radio,
+    },
+    {
+        title: 'Configuration',
+        href: configuration(),
+        icon: Settings,
     },
 ];
 
@@ -37,7 +46,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href={dashboard()} prefetch>
-                                <AppLogo />
+                                <h1 className="text-lg font-bold">Aino SVC</h1>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -47,11 +56,6 @@ export function AppSidebar() {
             <SidebarContent>
                 <NavMain items={mainNavItems} />
             </SidebarContent>
-
-            <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
-            </SidebarFooter>
         </Sidebar>
     );
 }
