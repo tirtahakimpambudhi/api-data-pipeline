@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+
 it('can create, update, and delete a channels', function () {
     // CREATE
     $chan = Channels::query()->create([
