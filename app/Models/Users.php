@@ -6,6 +6,8 @@ namespace App\Models;
 use Database\Factories\UsersFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Cache;
@@ -70,6 +72,7 @@ class Users extends Authenticatable
         return $this->belongsTo(Roles::class, 'role_id');
     }
 
+
     public function hasPermission(string $resourceType, string $action): bool {
         if (! $this->role_id) return false;
 
@@ -77,8 +80,8 @@ class Users extends Authenticatable
         $abilities = Cache::rememberForever($key, function () {
             return Permissions::query()
                 ->select('resource_type','action')
-                ->join('role_permission','permissions.id','=','role_permission.permission_id')
-                ->where('role_permission.role_id',$this->role_id)
+                ->join('roles_permissions','permissions.id','=','roles_permissions.permission_id')
+                ->where('roles_permissions.role_id',$this->role_id)
                 ->get()
                 ->map(fn($p) => "{$p->resource_type}.{$p->action}")
                 ->all();
