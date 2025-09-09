@@ -4,6 +4,11 @@ use App\Models\Permissions;
 use App\Models\Roles;
 use App\Models\RolesPermissions;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+
 it('can create a roles_permissions mapping and read relations', function () {
     $role = Roles::query()->create(['name' => 'Operator']);
     $perm = Permissions::query()->create(['resource_type' => 'service', 'action' => 'read']);
