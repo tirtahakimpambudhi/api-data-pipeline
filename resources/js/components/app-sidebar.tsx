@@ -1,9 +1,9 @@
 import { NavMain } from '@/components/nav-main';
-import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { channels, configuration, dashboard, environments, namespace, services } from '@/routes';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { channels, configuration, dashboard, environments, namespace, services, settings } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { FolderTree, LayoutDashboard, Network, Radio, ServerCog, Settings } from 'lucide-react';
+import { Cog, FolderTree, LayoutDashboard, Network, Radio, ServerCog, Settings } from 'lucide-react';
 
 const mainNavItems: NavItem[] = [
     {
@@ -34,7 +34,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Configuration',
         href: configuration(),
-        icon: Settings,
+        icon: Cog,
     },
 ];
 
@@ -56,6 +56,11 @@ export function AppSidebar() {
             <SidebarContent>
                 <NavMain items={mainNavItems} />
             </SidebarContent>
+            <SidebarFooter>
+                    <Link href={settings()} prefetch>
+                        <Settings />
+                    </Link>
+                </SidebarFooter>
         </Sidebar>
     );
 }

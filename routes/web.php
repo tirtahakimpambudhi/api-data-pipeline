@@ -26,6 +26,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('configuration', function () {
         return Inertia::render('configuration');
     }) ->name('configuration');
+    Route::get('settings', function () {
+        return Inertia::render('settings/profile');
+    }) ->name('settings');
 });
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
