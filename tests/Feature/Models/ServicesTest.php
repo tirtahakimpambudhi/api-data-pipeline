@@ -1,8 +1,11 @@
 <?php
 
+use App\Models\Channels;
+use App\Models\Configurations;
 use App\Models\Environments;
 use App\Models\Namespaces;
 use App\Models\Services;
+use App\Models\ServicesEnvironments;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -37,21 +40,24 @@ it('can create, update, and delete a service', function () {
 });
 
 it('can read with include all relationships service', function () {
-    $this->seed(DatabaseSeeder::class);
+    $ns  = Namespaces::create(['name' => 'ns']);
+    $svc = Services::create(['name' => 'svc', 'namespace_id' => $ns->id]);
 
-    $svc = Services::query()
-        ->with('namespace')
-        ->with('servicesEnvironments')
-        ->with('environments')
-        ->with('configurations')
-        ->findOrFail(1);
+    $env1 = Environments::create(['name' => 'dev']);
+    $env2 = Environments::create(['name' => 'prod']);
 
-    expect($svc->namespace->name)->not->toBeEmpty();
-    expect($svc->servicesEnvironments)->not->toBeEmpty();
-    $allEnvs = $svc->environments->flatten();
-    $allServiceConfs = $svc->configurations->flatten();
-    expect($allEnvs)->not->toBeEmpty();
-    expect($allServiceConfs)->not->toBeEmpty();
+    $se1 = ServicesEnvironments::create(['service_id' => $svc->id, 'environment_id' => $env1->id]);
+    $se2 = ServicesEnvironments::create(['service_id' => $svc->id, 'environment_id' => $env2->id]);
+
+    $chan = Channels::create(['name' => 'slack']);
+    Configurations::create(['service_environment_id' => $se1->id, 'channel_id' => $chan->id]);
+
+    $svc->load(['namespace','servicesEnvironments','environments','configurations']);
+
+    expect($svc->namespace->id)->toBe($ns->id);
+    expect($svc->servicesEnvironments)->toHaveCount(2);
+    expect($svc->environments->pluck('name')->sort()->values()->all())->toBe(['dev','prod']);
+    expect($svc->configurations)->not->toBeEmpty();
 });
 
 it('can create, update and delete a service with service environments models', function () {
