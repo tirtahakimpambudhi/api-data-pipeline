@@ -19,7 +19,8 @@ class Channels extends Model
 
     public function servicesEnvironments() : BelongsToMany
     {
-        return $this->belongsToMany(ServicesEnvironments::class, 'configurations', 'channel_id', 'service_environment_id');
+        return $this->belongsToMany(ServicesEnvironments::class, 'configurations', 'channel_id', 'service_environment_id')
+            ->withPivot('id');
     }
 
     public function configurations() : HasMany

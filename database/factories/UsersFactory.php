@@ -32,7 +32,7 @@ class UsersFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'role_id' => fn (array $attrs) =>
-                $attrs['role_id'] ?? Roles::factory(),
+                $attrs['role_id'] ?? Roles::factory()->state(['name' => $this->faker->unique()->word()])->create()->id,
             'remember_token' => Str::random(10),
         ];
     }
