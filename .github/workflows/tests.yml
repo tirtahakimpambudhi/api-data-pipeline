@@ -54,3 +54,4 @@ jobs:
           ./vendor/bin/pest --colors=always "$f"
           echo "::endgroup::"
           done
+
