@@ -4,6 +4,11 @@ use App\Models\Permissions;
 use App\Models\Roles;
 use Illuminate\Support\Facades\DB;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+
 it('can create, update, and delete a permission', function () {
     // CREATE
     $perm = Permissions::query()->create(['resource_type' => 'namespace', 'action' => 'read']);
