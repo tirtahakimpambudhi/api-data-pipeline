@@ -2,6 +2,7 @@
 
 use App\Models\Permissions;
 use App\Models\Roles;
+use App\Models\Users;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,19 +26,24 @@ it('can create, update, and delete a role', function () {
 });
 
 it('can read with include all relationships role', function () {
-    $this->seed(DatabaseSeeder::class);
+    $role = Roles::create(['name' => 'Admin', 'description' => 'administrator']);
 
-    $role = Roles::query()
-        ->with('permissions')
-        ->with('rolesPermissions')
-        ->with('users')
-        ->findOrFail(1);
+    $p1 = Permissions::create(['resource_type' => 'configurations', 'action' => 'create']);
+    $p2 = Permissions::create(['resource_type' => 'configurations', 'action' => 'read']);
+    $role->permissions()->attach([$p1->id, $p2->id]);
 
-    $allPermissions = $role->permissions->all();
-    $allUsers = $role->users->all();
-    expect($allPermissions)->not->toBeEmpty();
-    expect($allUsers)->not->toBeEmpty();
+    $u1 = Users::factory()->for($role, 'role')->create();
+    $u2 = Users::factory()->for($role, 'role')->create();
+
+    $role->load(['permissions','rolesPermissions','users']);
+
+    expect($role->permissions)->toHaveCount(2);
+    expect($role->users)->toHaveCount(2);
+    if (method_exists($role, 'rolesPermissions')) {
+        expect($role->rolesPermissions)->toHaveCount(2);
+    }
 });
+
 
 it('can create, update, and delete a role with permissions models', function () {
     // CREATE: role + beberapa permission

@@ -11,7 +11,6 @@ on:
       - develop
       - main
       - master
-
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -49,11 +48,5 @@ jobs:
         run: php artisan key:generate
 
       - name: Tests Models
-        run: |
-          set -euo pipefail
-          for f in tests/Feature/Models/*Test.php; do
-          echo "::group::$f"
-          ./vendor/bin/pest --colors=always "$f"
-          echo "::endgroup::"
-          done
+        run: ./vendor/bin/pest tests/Feature/Models
 
