@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+
 it('can create, update, and delete a service', function () {
     // CREATE
     $ns = Namespaces::query()->create(['name' => 'namespace']);
