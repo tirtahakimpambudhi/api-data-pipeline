@@ -22,7 +22,8 @@ class UpdateServiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'max:255|string',
+            'namespace_id' => 'min:0|numeric'
         ];
     }
 }

@@ -22,7 +22,8 @@ class CreateConfigurationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'service_environment_id' => 'numeric|min:0|required',
+            'channel_id' => 'required|numeric|min:0'
         ];
     }
 }

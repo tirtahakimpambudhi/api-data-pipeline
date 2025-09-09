@@ -22,7 +22,8 @@ class CreateServiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|max:255|string',
+            'namespace_id' => 'required|min:0|numeric'
         ];
     }
 }
