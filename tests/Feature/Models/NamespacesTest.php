@@ -1,7 +1,11 @@
 <?php
 
+use App\Models\Channels;
+use App\Models\Configurations;
+use App\Models\Environments;
 use App\Models\Namespaces;
-use Database\Seeders\DatabaseSeeder;
+use App\Models\Services;
+use App\Models\ServicesEnvironments;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -23,22 +27,28 @@ it('can create, update, and delete a namespace', function () {
 });
 
 it('can read with include all relationships namespace', function () {
-    $this->seed(DatabaseSeeder::class);
+    $ns   = Namespaces::create(['name' => 'ns']);
+    $env1 = Environments::create(['name' => 'dev']);
+    $env2 = Environments::create(['name' => 'staging']);
 
-    $ns = Namespaces::query()
-        ->with('servicesEnvironments')
-        ->with('services.environments')
-        ->with('services.configurations')
-        ->findOrFail(1);
+    $svc1 = Services::create(['name' => 'svc1', 'namespace_id' => $ns->id]);
+    $svc2 = Services::create(['name' => 'svc2', 'namespace_id' => $ns->id]);
 
-    expect($ns->services)->not->toBeEmpty();
-    expect($ns->servicesEnvironments)->not->toBeEmpty();
+    $se1 = ServicesEnvironments::create(['service_id' => $svc1->id, 'environment_id' => $env1->id]);
+    $se2 = ServicesEnvironments::create(['service_id' => $svc1->id, 'environment_id' => $env2->id]);
+    $se3 = ServicesEnvironments::create(['service_id' => $svc2->id, 'environment_id' => $env1->id]);
 
-    $allServiceEnvs = $ns->services->pluck('environments')->flatten();
-    $allServiceConfs = $ns->services->pluck('configurations')->flatten();
-    expect($allServiceEnvs)->not->toBeEmpty();
-    expect($allServiceConfs)->not->toBeEmpty();
+    $chan = Channels::create(['name' => 'slack']);
+    Configurations::create(['service_environment_id' => $se1->id, 'channel_id' => $chan->id]);
+
+    $ns->load(['services.environments','services.configurations','servicesEnvironments']);
+
+    expect($ns->services)->toHaveCount(2);
+    expect($ns->servicesEnvironments)->toHaveCount(3);
+    expect($ns->services->pluck('environments')->flatten())->not->toBeEmpty();
+    expect($ns->services->pluck('configurations')->flatten())->not->toBeEmpty();
 });
+
 
 it('can create, update and delete a namespace with service models', function () {
     // Create
