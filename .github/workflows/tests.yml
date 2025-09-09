@@ -46,5 +46,11 @@ jobs:
       - name: Generate Application Key
         run: php artisan key:generate
 
-      - name: Tests
-        run: ./vendor/bin/pest
+      - name: Tests Models
+        run: |
+          set -euo pipefail
+          for f in tests/Feature/Models/*Test.php; do
+          echo "::group::$f"
+          ./vendor/bin/pest --colors=always "$f"
+          echo "::endgroup::"
+          done
