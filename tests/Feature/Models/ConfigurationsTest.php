@@ -69,17 +69,26 @@ it('can create, update, and delete a configurations', function () {
 
 
 it('can read with include all relationships configurations', function () {
+    $ns  = Namespaces::create(['name' => 'ns']);
+    $env = Environments::create(['name' => 'dev']);
+    $svc = Services::create(['name' => 'svc', 'namespace_id' => $ns->id]);
 
-    $this->seed(DatabaseSeeder::class);
+    $svcEnv = ServicesEnvironments::create([
+        'service_id' => $svc->id,
+        'environment_id' => $env->id,
+    ]);
 
-    $conf = Configurations::query()
-        ->with('channel')
-        ->with('serviceEnvironment')
-        ->findOrFail(1);
+    $chan = Channels::create(['name' => 'slack']);
 
-    expect($conf->channel->name)->not->toBeEmpty();
-    expect($conf->serviceEnvironment->id)->not->toBeEmpty();
+    $conf = Configurations::create([
+        'service_environment_id' => $svcEnv->id,
+        'channel_id' => $chan->id,
+    ])->load(['channel','serviceEnvironment']);
+
+    expect($conf->channel->name)->toBe('slack');
+    expect($conf->serviceEnvironment->id)->toBe($svcEnv->id);
 });
+
 
 it('can create, update and delete a configurations with service environments models', function () {
     // Create
