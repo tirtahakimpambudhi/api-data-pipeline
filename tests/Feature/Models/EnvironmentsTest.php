@@ -1,8 +1,11 @@
 <?php
 
+use App\Models\Channels;
+use App\Models\Configurations;
 use App\Models\Environments;
 use App\Models\Namespaces;
 use App\Models\Services;
+use App\Models\ServicesEnvironments;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -28,21 +31,26 @@ it('can create, update, and delete a environment', function () {
 });
 
 it('can read with include all relationships environment', function () {
-    $this->seed(DatabaseSeeder::class);
+    $ns  = Namespaces::create(['name' => 'ns']);
+    $env = Environments::create(['name' => 'dev']);
 
-    $env = Environments::query()
-        ->with('servicesEnvironments')
-        ->with('services')
-        ->with('configurations')
-        ->findOrFail(1);
+    $svc1 = Services::create(['name' => 'svc1', 'namespace_id' => $ns->id]);
+    $svc2 = Services::create(['name' => 'svc2', 'namespace_id' => $ns->id]);
 
-    expect($env->services)->not->toBeEmpty();
-    expect($env->servicesEnvironments)->not->toBeEmpty();
-    $allServiceEnvs = $env->servicesEnvironments->flatten();
-    $allServiceConfs = $env->configurations->flatten();
-    expect($allServiceEnvs)->not->toBeEmpty();
-    expect($allServiceConfs)->not->toBeEmpty();
+    $se1 = ServicesEnvironments::create(['service_id' => $svc1->id, 'environment_id' => $env->id]);
+    $se2 = ServicesEnvironments::create(['service_id' => $svc2->id, 'environment_id' => $env->id]);
+
+    $chan = Channels::create(['name' => 'slack']);
+    Configurations::create(['service_environment_id' => $se1->id, 'channel_id' => $chan->id]);
+    Configurations::create(['service_environment_id' => $se2->id, 'channel_id' => $chan->id]);
+
+    $env->load(['services','servicesEnvironments','configurations']);
+
+    expect($env->services)->toHaveCount(2);
+    expect($env->servicesEnvironments)->toHaveCount(2);
+    expect($env->configurations)->toHaveCount(2);
 });
+
 
 it('can create, update and delete a environment with service environments models', function () {
     // Create
