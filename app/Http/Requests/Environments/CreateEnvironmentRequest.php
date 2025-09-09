@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Namespaces;
+namespace App\Http\Requests\Environments;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateNamespaceRequest extends FormRequest
+class CreateEnvironmentRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
