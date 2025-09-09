@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+
 it('can create, update, and delete a configurations', function () {
     // CREATE
     $ns = Namespaces::query()->create(['name' => 'namespace']);
@@ -68,6 +69,7 @@ it('can create, update, and delete a configurations', function () {
 
 
 it('can read with include all relationships configurations', function () {
+
     $this->seed(DatabaseSeeder::class);
 
     $conf = Configurations::query()
