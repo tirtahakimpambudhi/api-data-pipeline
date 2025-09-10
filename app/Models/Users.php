@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UsersFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -88,5 +89,15 @@ class Users extends Authenticatable
         });
 
         return in_array("{$resourceType}.{$action}", $abilities, true);
+    }
+
+    protected function roleName() : Attribute
+    {
+        return Attribute::get(function () :string {
+            if (!$this->role_id) return '';
+            $this->loadMissing('role');
+
+            return $this->role->name;
+        });
     }
 }
