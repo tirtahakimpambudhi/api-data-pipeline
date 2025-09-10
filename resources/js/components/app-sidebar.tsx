@@ -1,9 +1,9 @@
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { channels, configuration, dashboard, environments, namespace, services, settings } from '@/routes';
+import { channel, configuration, dashboard, environment, namespace, service, serviceEnvironment, settings } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Cog, FolderTree, LayoutDashboard, Network, Radio, ServerCog, Settings } from 'lucide-react';
+import { Cog, FolderTree, LayoutDashboard, Network, Radio, ServerCog, Settings, Wrench } from 'lucide-react';
 
 const mainNavItems: NavItem[] = [
     {
@@ -12,29 +12,34 @@ const mainNavItems: NavItem[] = [
         icon: LayoutDashboard,
     },
     {
-        title: 'Namespaces',
+        title: 'Namespace',
         href: namespace(),
         icon: FolderTree,
     },
     {
-        title: 'Services',
-        href: services(),
+        title: 'Service',
+        href: service(),
         icon: ServerCog,
     },
     {
-        title: 'Environments',
-        href: environments(),
+        title: 'Environment',
+        href: environment(),
         icon: Network,
     },
     {
-        title: 'Channels',
-        href: channels(),
+        title: 'Channel',
+        href: channel(),
         icon: Radio,
     },
     {
         title: 'Configuration',
         href: configuration(),
         icon: Cog,
+    },
+    {
+        title: 'Service Environment',
+        href: serviceEnvironment(),
+        icon: Wrench,
     },
 ];
 

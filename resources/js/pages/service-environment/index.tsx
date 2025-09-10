@@ -1,17 +1,17 @@
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
-import { services } from '@/routes';
+import { serviceEnvironment } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Services',
-        href: services().url,
+        title: 'Service Environmets',
+        href: serviceEnvironment().url,
     },
 ];
 
-export default function Services() {
+export default function serviceEnvironments() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />

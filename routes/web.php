@@ -12,23 +12,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
     Route::get('namespace', function () {
-        return Inertia::render('namespace');
+        return Inertia::render('namespace/index');
     }) ->name('namespace');
-    Route::get('services', function () {
-        return Inertia::render('services');
-    }) ->name('services');
-    Route::get('environments', function () {
-        return Inertia::render('environments');
-    }) ->name('environments');
-    Route::get('channels', function () {
-        return Inertia::render('channels');
-    }) ->name('channels');
+    Route::get('service', function () {
+        return Inertia::render('service/index');
+    }) ->name('service');
+    Route::get('environment', function () {
+        return Inertia::render('environment/index');
+    }) ->name('environment');
+    Route::get('channel', function () {
+        return Inertia::render('channel/index');
+    }) ->name('channel');
     Route::get('configuration', function () {
-        return Inertia::render('configuration');
+        return Inertia::render('configuration/index');
     }) ->name('configuration');
     Route::get('settings', function () {
         return Inertia::render('settings/profile');
     }) ->name('settings');
+    Route::get('service-environment', function () {
+        return Inertia::render('service-environment/index');
+    }) ->name('service-environment');
 });
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
