@@ -1,11 +1,14 @@
 <?php
 
 namespace App\Traits;
-use Illuminate\Contracts\Validation\Validator;
+use App\Exceptions\NotFoundServiceException;
 
-use App\Constants\ActionsTypes;
-use App\Constants\ResourcesTypes;
 use Faker\Factory as Faker;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
+
 trait Helpers
 {
     public function crossComboArr(
@@ -40,4 +43,19 @@ trait Helpers
 
         return $c->values()->all();
     }
+
+// Traits/Helpers.php
+    public function applyPagination(Builder $query, int $page, int $size): LengthAwarePaginator
+    {
+        Log::info("Apply pagination: page={$page}, size={$size}");
+        $paginator  = $query->paginate(perPage: $size, page: $page);
+        $totalPages = max(1, (int) ceil($paginator->total() / $paginator->perPage()));
+        if ($page > $totalPages) {
+            Log::error("Page not found with current page {$page}");
+            throw new NotFoundServiceException("Page not found with current page {$page}.");
+        }
+        Log::info("Successfully fetched page={$page} size={$size}");
+        return $paginator;
+    }
+
 }
