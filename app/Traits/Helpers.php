@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Traits;
+use Illuminate\Contracts\Validation\Validator;
 
 use App\Constants\ActionsTypes;
 use App\Constants\ResourcesTypes;
