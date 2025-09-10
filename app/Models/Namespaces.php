@@ -23,7 +23,7 @@ class Namespaces extends Model
         return $this->hasMany(Services::class, 'namespace_id');
     }
 
-    public function serviceEnvironments() : HasManyThrough
+    public function servicesEnvironments() : HasManyThrough
     {
         return $this->hasManyThrough(
             ServicesEnvironments::class,

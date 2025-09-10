@@ -19,7 +19,8 @@ class Environments extends Model
     ];
     public function services() :BelongsToMany
     {
-        return $this->belongsToMany(Services::class, 'services_environments', 'environment_id', 'service_id');
+        return $this->belongsToMany(Services::class, 'services_environments', 'environment_id', 'service_id')
+            ->withPivot('id');
     }
     public function servicesEnvironments() : HasMany
     {
