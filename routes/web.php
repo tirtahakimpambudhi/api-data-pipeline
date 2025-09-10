@@ -23,16 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('namespace/create', function () {
         return Inertia::render('namespace/create');
     })->name('namespace.create');
-    Route::post('namespaces', function () {
-        return redirect()->route('namespaces.index')->with('message', 'Namespace created successfully!');
-    })->name('namespaces.store');
-    Route::get('namespace/{namespace}/edit', function (Namespaces $namespace) {
-        return Inertia::render('namespace/edit', [
-            'namespace' => $namespace,
-        ]);
-    })->name('namespaces.edit');
     Route::resource('namespaces', NamespaceController::class);
-
     Route::post('namespaces/{namespace}/services', [NamespaceController::class, 'storeService'])
         ->name('namespaces.services.store');
 
