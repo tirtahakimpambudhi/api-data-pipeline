@@ -15,10 +15,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    Route::resource('namespaces', NamespaceController::class);
-
-    Route::post('namespaces/{namespace}/services', [NamespaceController::class, 'storeService'])
-        ->name('namespaces.services.store');
 
     // Namespace
     Route::get('namespace', function () {
@@ -35,6 +31,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'namespace' => $namespace,
         ]);
     })->name('namespaces.edit');
+    Route::resource('namespaces', NamespaceController::class);
+
+    Route::post('namespaces/{namespace}/services', [NamespaceController::class, 'storeService'])
+        ->name('namespaces.services.store');
 
     // Service
     Route::get('service', function () {
