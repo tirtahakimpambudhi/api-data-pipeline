@@ -41,14 +41,14 @@ class NamespaceController extends Controller
             $namespaces = $this->namespacesService->getAll($request);
         }
         
-        return Inertia::render('Namespaces/Index', [
+        return Inertia::render('namespace/index', [
             'namespaces' => $namespaces,
         ]);
     }
 
     public function create(): Response
     {
-        return Inertia::render('Namespaces/Create');
+        return Inertia::render('namespace/create');
     }
 
     public function store(CreateNamespaceRequest $request): RedirectResponse
@@ -67,7 +67,7 @@ class NamespaceController extends Controller
     {
         $namespace = $this->namespacesService->getById($id);
 
-        return Inertia::render('Namespaces/Show', [
+        return Inertia::render('namespace/show', [
             'namespace' => $namespace,
         ]);
     }
@@ -76,7 +76,7 @@ class NamespaceController extends Controller
     {
         $namespace = $this->namespacesService->getById($id);
 
-        return Inertia::render('Namespaces/Edit', [
+        return Inertia::render('namespace/edit', [
             'namespace' => $namespace,
         ]);
     }

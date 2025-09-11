@@ -5,16 +5,14 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
-import { namespace } from '@/routes';
-import { create } from '@/routes/namespace';
-import { edit } from '@/routes/namespaces';
+import namespaces, { edit } from '@/routes/namespaces';
 import { type BreadcrumbItem, type Namespace, type PaginatedResponse } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Namespace', href: namespace().url }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Namespace', href: namespaces.index.url() }];
 
 const dummyNamespaces: PaginatedResponse<Namespace> = {
     data: [
@@ -127,7 +125,7 @@ export default function NamespacePage() {
                 <div className="rounded-xl bg-white p-4 shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-end">
                         <Button asChild>
-                            <Link href={create()}>Create</Link>
+                            <Link href={namespaces.create.url()}>Create</Link>
                         </Button>
                     </div>
 
