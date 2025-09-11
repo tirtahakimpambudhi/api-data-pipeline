@@ -112,7 +112,7 @@ class ServicesServiceImpl implements ServicesService
             $this->logger->info("Start of getById services id={$id} (service layer)");
 
             $svc = $this->model->newQuery()
-                ->with(['configurations', 'namespace', 'servicesEnvironments', 'environments'])
+                ->with(['configurations', 'namespace', 'servicesEnvironments.channels', 'environments'])
                 ->find($id);
 
             if (!$svc) {
@@ -146,8 +146,7 @@ class ServicesServiceImpl implements ServicesService
             $query = $this->model->newQuery()->with(['configurations', 'namespace', 'servicesEnvironments', 'environments']);
 
             if ($searchValue !== '') {
-                $query->whereLike('name', "%{$searchValue}%")
-                ->orWhereLike('namespace.name', "%{$searchValue}%");
+                $query->whereLike('name', "%{$searchValue}%");
             }
             if ($page > 0 && $size > 0) {
                 return $this->applyPagination(query: $query, page: $page, size: $size);
