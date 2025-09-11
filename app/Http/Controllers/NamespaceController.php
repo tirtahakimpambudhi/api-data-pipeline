@@ -3,10 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\ConflictServiceException;
-use App\Exceptions\InternalServiceException;
 use App\Exceptions\NotFoundServiceException;
-use App\Exceptions\PermissionDeniedServiceException;
-use App\Exceptions\UnauthorizedServiceException;
 use App\Http\Requests\General\PaginationRequest;
 use App\Http\Requests\General\SearchPaginationRequest;
 use App\Http\Requests\Namespaces\CreateNamespaceRequest;
@@ -18,13 +15,9 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
-use Validator;
 
 class NamespaceController extends Controller
 {
-    /**
-     * @var NamespacesService
-     */
     protected NamespacesService $namespacesService;
 
     public function __construct(NamespacesService $namespacesService)
@@ -34,16 +27,21 @@ class NamespaceController extends Controller
 
     public function index(PaginationRequest $request): Response
     {
-        if ($request->filled('search')) {
-            $searchRequest = SearchPaginationRequest::createFrom($request);
-            Validator::make($request->all(), $searchRequest->rules())->validate();
-            $namespaces = $this->namespacesService->search($searchRequest);
-        } else {
-            $namespaces = $this->namespacesService->getAll($request);
-        }
+        $namespaces = $this->namespacesService->getAll($request);
 
         return Inertia::render('namespace/index', [
             'namespaces' => $namespaces,
+            'filters' => $request->all(['page', 'size']),
+        ]);
+    }
+
+    public function search(SearchPaginationRequest $request): Response
+    {
+        $namespaces = $this->namespacesService->search($request);
+
+        return Inertia::render('namespace/index', [
+            'namespaces' => $namespaces,
+            'filters' => $request->all(['search', 'page', 'size']),
         ]);
     }
 
@@ -66,20 +64,26 @@ class NamespaceController extends Controller
 
     public function show(int $id): Response
     {
-        $namespace = $this->namespacesService->getById($id);
-
-        return Inertia::render('namespace/show', [
-            'namespace' => $namespace,
-        ]);
+        try {
+            $namespace = $this->namespacesService->getById($id);
+            return Inertia::render('namespace/show', [
+                'namespace' => $namespace,
+            ]);
+        } catch (NotFoundServiceException $e) {
+            abort(404);
+        }
     }
 
     public function edit(int $id): Response
     {
-        $namespace = $this->namespacesService->getById($id);
-
-        return Inertia::render('namespace/edit', [
-            'namespace' => $namespace,
-        ]);
+        try {
+            $namespace = $this->namespacesService->getById($id);
+            return Inertia::render('namespace/edit', [
+                'namespace' => $namespace,
+            ]);
+        } catch (NotFoundServiceException $e) {
+            abort(404);
+        }
     }
 
     public function update(UpdateNamespaceRequest $request, int $id): RedirectResponse
@@ -107,7 +111,7 @@ class NamespaceController extends Controller
             return back()->with('error', 'Terjadi kesalahan internal. Gagal menghapus namespace.');
         }
     }
-
+    
     public function storeService(CreateServiceRequest $request, int $namespaceId): RedirectResponse
     {
         try {
