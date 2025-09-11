@@ -61,11 +61,14 @@ export interface Service {
 export interface Channel {
     id: number;
     name: string;
+    created_at: string;
+    updated_at?: string;
 }
-
 export interface Environment {
     id: number;
     name: string;
+    created_at: string;
+    updated_at?: string;
 }
 
 export interface ServiceEnvironment {
@@ -98,8 +101,4 @@ export interface Permission {
     description: string | null;
 }
 
-export interface RolePermission {
-    id: number;
-    role_id: number;
-    permission_id: number;
-}
+export type PaginatedResponse<T> = T[];

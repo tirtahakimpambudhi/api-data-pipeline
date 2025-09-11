@@ -104,7 +104,6 @@ export default function NamespacePage({ namespaces }: { namespaces: PaginatedRes
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Namespace" />
-            {/* Follow system theme & keep richColors for better contrast */}
             <Toaster richColors theme="system" position="top-center" />
 
             <div className="flex flex-col gap-4 p-4 lg:p-6">

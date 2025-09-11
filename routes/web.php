@@ -31,9 +31,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Environment
     Route::get('environments/search', [EnvironmentController::class, 'search'])->name('environments.search');
     Route::resource('environments', EnvironmentController::class);
-    Route::get('environment', function () {
-        return Inertia::render('environment/index');
-    })->name('environment');
 
     // Channel
     Route::get('channel', function () {

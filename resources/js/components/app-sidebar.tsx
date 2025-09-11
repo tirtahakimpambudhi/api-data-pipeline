@@ -1,6 +1,7 @@
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { channel, configuration, dashboard, environment,  service, serviceEnvironment, settings } from '@/routes';
+import { channel, configuration, dashboard, service, serviceEnvironment, settings } from '@/routes';
+import environments from '@/routes/environments';
 import namespaces from '@/routes/namespaces';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
@@ -9,7 +10,7 @@ import { Cog, FolderTree, LayoutDashboard, Network, Radio, ServerCog, Settings, 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard.url(), 
+        href: dashboard.url(),
         icon: LayoutDashboard,
     },
     {
@@ -19,27 +20,27 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Service',
-        href: service.url(), 
+        href: service.url(),
         icon: ServerCog,
     },
     {
         title: 'Environment',
-        href: environment.url(),
+        href: environments.index.url(),
         icon: Network,
     },
     {
         title: 'Channel',
-        href: channel.url(), 
+        href: channel.url(),
         icon: Radio,
     },
     {
         title: 'Configuration',
-        href: configuration.url(), 
+        href: configuration.url(),
         icon: Cog,
     },
     {
         title: 'Service Environment',
-        href: serviceEnvironment.url(), 
+        href: serviceEnvironment.url(),
         icon: Wrench,
     },
 ];
@@ -63,10 +64,10 @@ export function AppSidebar() {
                 <NavMain items={mainNavItems} />
             </SidebarContent>
             <SidebarFooter>
-                    <Link href={settings()} prefetch>
-                        <Settings />
-                    </Link>
-                </SidebarFooter>
+                <Link href={settings()} prefetch>
+                    <Settings />
+                </Link>
+            </SidebarFooter>
         </Sidebar>
     );
 }

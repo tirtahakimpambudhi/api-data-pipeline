@@ -30,6 +30,8 @@ class EnvironmentController extends Controller
     {
         $environments = $this->environmentsService->getAll($request);
 
+        dd($environments);
+
         return Inertia::render('environment/index', [
             'environments' => $environments,
             'filters' => $request->all(['page', 'size']),
