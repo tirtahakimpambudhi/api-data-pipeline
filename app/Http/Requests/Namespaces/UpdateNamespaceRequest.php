@@ -35,12 +35,4 @@ class UpdateNamespaceRequest extends FormRequest
             'name.unique' => 'Name already exists!',
         ];
     }
-
-    /**
-     * @throws ValidationServiceException
-     */
-    public function failedValidation(Validator $validator)
-    {
-        throw new ValidationServiceException(['errors' => $validator->errors()->toArray()]);
-    }
 }

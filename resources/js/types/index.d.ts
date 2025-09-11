@@ -31,12 +31,97 @@ export interface SharedData {
 }
 
 export interface User {
-    id: number;
-    name: string;
+    id: string;
+    username: string;
     email: string;
-    avatar?: string;
     email_verified_at: string | null;
+    role_id: number;
     created_at: string;
     updated_at: string;
-    [key: string]: unknown; // This allows for additional properties...
+    role?: Role;
+    avatar?: string;
+}
+
+export interface Namespace {
+    id: number;
+    name: string;
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface Service {
+    id: number;
+    name: string;
+    namespace_id: number;
+    namespace?: Namespace;
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface Channel {
+    id: number;
+    name: string;
+}
+
+export interface Environment {
+    id: number;
+    name: string;
+}
+
+export interface ServiceEnvironment {
+    id: number;
+    service_id: number;
+    environment_id: number;
+    service?: Service;
+    environment?: Environment;
+}
+
+export interface Configuration {
+    id: number;
+    service_environment_id: number;
+    channel_id: number;
+    service_environment?: ServiceEnvironment;
+    channel?: Channel;
+}
+
+export interface Role {
+    id: number;
+    name: string;
+    description: string | null;
+    permissions?: Permission[];
+}
+
+export interface Permission {
+    id: number;
+    resource_type: 'namespace' | 'service' | 'environment' | 'service_environment' | 'configuration' | 'channel' | 'user';
+    action: 'view' | 'edit' | 'configure' | 'deploy' | 'manage' | 'assign_roles';
+    description: string | null;
+}
+
+export interface RolePermission {
+    id: number;
+    role_id: number;
+    permission_id: number;
+}
+
+export interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export interface PaginatedResponse<T> {
+    current_page: number;
+    data: T[];
+    first_page_url: string;
+    from: number | null;
+    last_page: number;
+    last_page_url: string;
+    links: PaginationLink[];
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
+    to: number | null;
+    total: number;
 }

@@ -18,6 +18,7 @@ use App\Models\Services;
 use App\Models\ServicesEnvironments;
 use App\Models\Users;
 use App\Traits\Helpers;
+use Hash;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
