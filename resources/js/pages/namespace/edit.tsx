@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/app-layout';
 import namespaces from '@/routes/namespaces';
 import type { Namespace } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import React, { useMemo, useRef } from 'react';
+import React, { useRef } from 'react';
 
 type Props = {
     namespace: Namespace;
@@ -13,14 +13,15 @@ type Props = {
 export default function EditPage({ namespace }: Props) {
     const initial = useRef({ name: namespace.name });
 
-    const { data, setData, post, processing, errors, wasSuccessful } = useForm({
+    const { data, setData, put, processing, errors, wasSuccessful } = useForm({
         name: namespace.name ?? '',
     });
 
-    const updateUrl = useMemo(() => `/namespace/${namespace.id}`, [namespace.id]);
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        put(namespaces.update.url({ namespace: namespace.id }), {
+            preserveScroll: true,
+        });
     };
 
     const handleReset = () => {
@@ -57,7 +58,7 @@ export default function EditPage({ namespace }: Props) {
 
                         <div className="flex items-center justify-between">
                             <Button asChild variant="ghost">
-                                <Link href={ namespaces.index.url()}>Cancel</Link>
+                                <Link href={namespaces.index.url()}>Cancel</Link>
                             </Button>
 
                             <div className="flex gap-2">

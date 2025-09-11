@@ -50,6 +50,11 @@ export default function NamespacePage({ namespaces }: { namespaces: PaginatedRes
         });
     }, []);
 
+    const handleReset = () => {
+        setSearch('');
+        router.get(namespaceRoutes.index.url(), {}, { preserveState: true, replace: true });
+    }
+
     const columns: ColumnDefinition<Namespace>[] = useMemo(
         () => [
             { header: 'ID', align: 'left', render: (item) => item.id },
@@ -105,6 +110,9 @@ export default function NamespacePage({ namespaces }: { namespaces: PaginatedRes
                         />
                         <Button className="ml-2" onClick={handleSearch}>
                             Search
+                        </Button>
+                        <Button className="ml-2" onClick={handleReset}>
+                             Reset
                         </Button>
                     </div>
                 </FilterCard>
