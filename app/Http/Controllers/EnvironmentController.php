@@ -30,7 +30,7 @@ class EnvironmentController extends Controller
     {
         $environments = $this->environmentsService->getAll($request);
 
-        dd($environments);
+        // dd($environments);
 
         return Inertia::render('environment/index', [
             'environments' => $environments,
