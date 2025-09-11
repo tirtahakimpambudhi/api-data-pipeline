@@ -30,13 +30,12 @@ export default function EnvironmentIndexPage({
     environments: PaginatedResponse<Environment>;
     filters?: Record<string, string | number | undefined>;
 }) {
-    console.log(environments);
     const [search, setSearch] = useState<string>(String(filters?.search ?? ''));
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
     const paginatedData = useMemo(() => {
-        if (!environments) return []; 
+        if (!environments) return [];
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         return environments.slice(startIndex, endIndex);
@@ -50,10 +49,10 @@ export default function EnvironmentIndexPage({
         }
     };
 
-    const handleReset = useCallback(() => {
+    const handleReset = () => {
         setSearch('');
-        router.get(environmentRoutes.index.url(), { page: 1, size: itemsPerPage }, { preserveState: true, replace: true });
-    }, [itemsPerPage]);
+        router.get(environmentRoutes.index.url(), {}, { preserveState: true, replace: true });
+    };
 
     const handleDelete = useCallback((item: Environment) => {
         toast.warning(`Are you sure you want to delete "${item.name}"?`, {
