@@ -18,15 +18,19 @@ export default function DataTable<T extends { id: number | string }>({ data, col
     }
 
     return (
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-            <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+            <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted">
                     <tr>
                         {columns.map((column, index) => (
                             <th
                                 key={index}
                                 scope="col"
-                                className={`px-6 py-3 text-xs font-medium tracking-wider text-gray-500 uppercase ${column.align === 'center' ? 'text-center' : ''} ${column.align === 'right' ? 'text-right' : 'text-left'} `}
+                                className={[
+                                    'px-6 py-3 text-xs font-medium tracking-wider text-muted-foreground uppercase',
+                                    column.align === 'center' ? 'text-center' : '',
+                                    column.align === 'right' ? 'text-right' : 'text-left',
+                                ].join(' ')}
                             >
                                 {column.header}
                             </th>
@@ -34,13 +38,18 @@ export default function DataTable<T extends { id: number | string }>({ data, col
                     </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-200 bg-white">
+                <tbody className="divide-y divide-border bg-card">
                     {data.map((item) => (
-                        <tr key={item.id} className="hover:bg-gray-50">
+                        <tr key={item.id} className="transition-colors hover:bg-muted/60">
                             {columns.map((column, colIndex) => (
                                 <td
                                     key={colIndex}
-                                    className={`px-6 py-4 align-middle text-sm whitespace-nowrap ${column.align === 'center' ? 'text-center' : ''} ${column.align === 'right' ? 'text-right' : 'text-left'} ${column.accessor ? 'text-gray-900' : 'text-gray-500'} `}
+                                    className={[
+                                        'px-6 py-4 align-middle text-sm whitespace-nowrap',
+                                        column.align === 'center' ? 'text-center' : '',
+                                        column.align === 'right' ? 'text-right' : 'text-left',
+                                        column.accessor ? 'text-foreground' : 'text-muted-foreground',
+                                    ].join(' ')}
                                 >
                                     {column.render ? column.render(item) : column.accessor ? String(item[column.accessor]) : ''}
                                 </td>

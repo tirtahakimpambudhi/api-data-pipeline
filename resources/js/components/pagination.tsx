@@ -1,51 +1,54 @@
-import { Link } from '@inertiajs/react';
-
-interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
-}
+import { Button } from './ui/button';
 
 interface PaginationProps {
-    links: PaginationLink[];
     className?: string;
+    currentPage: number;
+    totalItems: number;
+    itemsPerPage: number;
+    onPageChange: (page: number) => void;
 }
 
-export default function Pagination({ links, className = '' }: PaginationProps) {
-    if (!links || links.length <= 3) {
+export default function Pagination({ className = '', currentPage, totalItems, itemsPerPage, onPageChange }: PaginationProps) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    if (totalPages <= 1) {
         return null;
     }
 
+    const handlePrevious = () => {
+        if (currentPage > 1) {
+            onPageChange(currentPage - 1);
+        }
+    };
+
+    const handleNext = () => {
+        if (currentPage < totalPages) {
+            onPageChange(currentPage + 1);
+        }
+    };
+
+    const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
     return (
         <nav className={className}>
-            <ul className="inline-flex -space-x-px text-sm">
-                {links.map((link, index) => {
-                    const linkClassName = `
-                        flex h-10 items-center justify-center border border-gray-300 px-4 leading-tight 
-                        ${index === 0 ? 'rounded-l-lg' : ''} 
-                        ${index === links.length - 1 ? 'rounded-r-lg' : ''}
-                        ${
-                            link.active
-                                ? 'z-10 border-blue-400 bg-blue-50 text-blue-600'
-                                : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-                        }
-                        ${!link.url ? 'cursor-not-allowed bg-gray-100 text-gray-400' : ''}
-                    `;
-
-                    if (!link.url) {
-                        return (
-                            <li key={index}>
-                                <div className={linkClassName} dangerouslySetInnerHTML={{ __html: link.label }} />
-                            </li>
-                        );
-                    }
-
-                    return (
-                        <li key={index}>
-                            <Link href={link.url} className={linkClassName} dangerouslySetInnerHTML={{ __html: link.label }} />
-                        </li>
-                    );
-                })}
+            <ul className="inline-flex items-center -space-x-px text-sm">
+                <li>
+                    <Button variant="outline" className="ml-0 rounded-l-lg" onClick={handlePrevious} disabled={currentPage === 1}>
+                        Previous
+                    </Button>
+                </li>
+                {pageNumbers.map((page) => (
+                    <li key={page}>
+                        <Button variant={currentPage === page ? 'default' : 'outline'} className="rounded-none" onClick={() => onPageChange(page)}>
+                            {page}
+                        </Button>
+                    </li>
+                ))}
+                <li>
+                    <Button variant="outline" className="rounded-r-lg" onClick={handleNext} disabled={currentPage === totalPages}>
+                        Next
+                    </Button>
+                </li>
             </ul>
         </nav>
     );
