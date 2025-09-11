@@ -260,7 +260,7 @@ class NamespacesServiceImpl implements NamespacesService
             $this->logger->info("Start of getById namespace id={$id} (service layer)");
 
             $namespace = $this->model->newQuery()
-                ->with(['services.configurations', 'servicesEnvironments', 'services.environments'])
+                ->with(['services.configurations', 'servicesEnvironments.channels', 'services.environments'])
                 ->find($id);
 
             if (!$namespace) {
