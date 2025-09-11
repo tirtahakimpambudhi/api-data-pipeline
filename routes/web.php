@@ -17,6 +17,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // Namespace
+    Route::get('namespaces/search', [NamespaceController::class, 'search'])->name('namespaces.search');
     Route::resource('namespaces', NamespaceController::class);
     Route::post('namespaces/{namespace}/services', [NamespaceController::class, 'storeService'])
         ->name('namespaces.services.store');
