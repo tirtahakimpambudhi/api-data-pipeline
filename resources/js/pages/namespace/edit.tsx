@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
-import { namespace as indexRoute } from '@/routes';
+import namespaces from '@/routes/namespaces';
 import type { Namespace } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import React, { useMemo, useRef } from 'react';
@@ -57,7 +57,7 @@ export default function EditPage({ namespace }: Props) {
 
                         <div className="flex items-center justify-between">
                             <Button asChild variant="ghost">
-                                <Link href={indexRoute()}>Cancel</Link>
+                                <Link href={ namespaces.index.url()}>Cancel</Link>
                             </Button>
 
                             <div className="flex gap-2">

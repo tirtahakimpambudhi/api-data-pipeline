@@ -17,12 +17,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // Namespace
-    Route::get('namespace', function () {
-        return Inertia::render('namespace/index');
-    })->name('namespace');
-    Route::get('namespace/create', function () {
-        return Inertia::render('namespace/create');
-    })->name('namespace.create');
     Route::resource('namespaces', NamespaceController::class);
     Route::post('namespaces/{namespace}/services', [NamespaceController::class, 'storeService'])
         ->name('namespaces.services.store');

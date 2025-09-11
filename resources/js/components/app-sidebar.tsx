@@ -1,6 +1,7 @@
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { channel, configuration, dashboard, environment, namespace, service, serviceEnvironment, settings } from '@/routes';
+import { channel, configuration, dashboard, environment,  service, serviceEnvironment, settings } from '@/routes';
+import namespaces from '@/routes/namespaces';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import { Cog, FolderTree, LayoutDashboard, Network, Radio, ServerCog, Settings, Wrench } from 'lucide-react';
@@ -8,37 +9,37 @@ import { Cog, FolderTree, LayoutDashboard, Network, Radio, ServerCog, Settings, 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: dashboard.url(), 
         icon: LayoutDashboard,
     },
     {
         title: 'Namespace',
-        href: namespace(),
+        href: namespaces.index.url(),
         icon: FolderTree,
     },
     {
         title: 'Service',
-        href: service(),
+        href: service.url(), 
         icon: ServerCog,
     },
     {
         title: 'Environment',
-        href: environment(),
+        href: environment.url(),
         icon: Network,
     },
     {
         title: 'Channel',
-        href: channel(),
+        href: channel.url(), 
         icon: Radio,
     },
     {
         title: 'Configuration',
-        href: configuration(),
+        href: configuration.url(), 
         icon: Cog,
     },
     {
         title: 'Service Environment',
-        href: serviceEnvironment(),
+        href: serviceEnvironment.url(), 
         icon: Wrench,
     },
 ];

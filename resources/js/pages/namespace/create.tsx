@@ -1,8 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
-import { namespace } from '@/routes';
-import { store } from '@/routes/namespaces';
+import namespaces, { store } from '@/routes/namespaces';
 import { Head, Link, useForm } from '@inertiajs/react';
 import React from 'react';
 
@@ -61,7 +60,7 @@ export default function CreatePage() {
 
             <div className="flex items-center justify-end">
               <Button asChild variant="ghost">
-                <Link href={namespace()}>Cancel</Link>
+                <Link href={ namespaces.index.url()}>Cancel</Link>
               </Button>
             </div>
           </form>

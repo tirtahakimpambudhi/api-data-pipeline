@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
+use Validator;
 
 class NamespaceController extends Controller
 {
@@ -35,20 +36,20 @@ class NamespaceController extends Controller
     {
         if ($request->filled('search')) {
             $searchRequest = SearchPaginationRequest::createFrom($request);
-            $searchRequest->validateResolved();
+            Validator::make($request->all(), $searchRequest->rules())->validate();
             $namespaces = $this->namespacesService->search($searchRequest);
         } else {
             $namespaces = $this->namespacesService->getAll($request);
         }
-        
-        return Inertia::render('Namespaces/Index', [
+
+        return Inertia::render('namespace/index', [
             'namespaces' => $namespaces,
         ]);
     }
 
     public function create(): Response
     {
-        return Inertia::render('Namespaces/Create');
+        return Inertia::render('namespace/create');
     }
 
     public function store(CreateNamespaceRequest $request): RedirectResponse
@@ -67,7 +68,7 @@ class NamespaceController extends Controller
     {
         $namespace = $this->namespacesService->getById($id);
 
-        return Inertia::render('Namespaces/Show', [
+        return Inertia::render('namespace/show', [
             'namespace' => $namespace,
         ]);
     }
@@ -76,7 +77,7 @@ class NamespaceController extends Controller
     {
         $namespace = $this->namespacesService->getById($id);
 
-        return Inertia::render('Namespaces/Edit', [
+        return Inertia::render('namespace/edit', [
             'namespace' => $namespace,
         ]);
     }
