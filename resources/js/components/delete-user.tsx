@@ -1,10 +1,10 @@
-import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import HeadingSmall from '@/components/heading-small';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import profile from '@/routes/profile';
 import { Form } from '@inertiajs/react';
 import { useRef } from 'react';
 
@@ -32,8 +32,7 @@ export default function DeleteUser() {
                         </DialogDescription>
 
                         <Form
-                            method={ProfileController.destroy.method}
-                            action={ProfileController.destroy.url()}
+                            {...profile.destroy()}
                             options={{
                                 preserveScroll: true,
                             }}
