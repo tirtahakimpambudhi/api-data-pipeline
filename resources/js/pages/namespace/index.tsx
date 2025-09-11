@@ -1,6 +1,5 @@
 import DataTable, { type ColumnDefinition } from '@/components/data-table';
 import FilterCard from '@/components/filter-card';
-import Pagination from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -24,12 +23,15 @@ const formatDateTime = (iso?: string) => {
 };
 
 export default function NamespacePage({ namespaces }: { namespaces: PaginatedResponse<Namespace> }) {
-    console.log('namespaces', namespaces);
     const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
 
     const handleSearch = () => {
-        router.get(namespaceRoutes.index.url(), { search }, { preserveState: true, replace: true });
-    };
+    if (search) {
+        router.get(namespaceRoutes.search.url(), { search }, { preserveState: true, replace: true });
+    } else {
+        router.get(namespaceRoutes.index.url(), {}, { preserveState: true, replace: true });
+    }
+};
 
     const handleDelete = useCallback((item: Namespace) => {
         toast.warning(`Are you sure you want to delete "${item.name}"?`, {
