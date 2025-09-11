@@ -12,7 +12,7 @@ interface PaginationProps {
 }
 
 export default function Pagination({ links, className = '' }: PaginationProps) {
-    if (links.length <= 3) {
+    if (!links || links.length <= 3) {
         return null;
     }
 

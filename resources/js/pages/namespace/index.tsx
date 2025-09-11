@@ -5,42 +5,14 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
-import namespaces, { edit } from '@/routes/namespaces';
+import namespaceRoutes from '@/routes/namespaces';
 import { type BreadcrumbItem, type Namespace, type PaginatedResponse } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Namespace', href: namespaces.index.url() }];
-
-const dummyNamespaces: PaginatedResponse<Namespace> = {
-    data: [
-        { id: 1, name: 'Frontend Applications', created_at: '2023-01-15T10:30:00Z', updated_at: '2023-01-15T10:30:00Z' },
-        { id: 2, name: 'Backend Services', created_at: '2023-02-20T14:00:00Z', updated_at: '2023-02-22T09:00:00Z' },
-        { id: 3, name: 'Data Analytics Platform', created_at: '2023-03-10T11:20:00Z', updated_at: '2023-03-10T11:20:00Z' },
-        { id: 4, name: 'Mobile Services', created_at: '2023-04-05T16:45:00Z', updated_at: '2023-04-06T18:00:00Z' },
-        { id: 5, name: 'Payment Gateway', created_at: '2023-05-01T08:00:00Z', updated_at: '2023-05-01T08:00:00Z' },
-    ],
-    links: [
-        { url: null, label: '&laquo; Previous', active: false },
-        { url: '/?page=1', label: '1', active: true },
-        { url: '/?page=2', label: '2', active: false },
-        { url: '/?page=3', label: '3', active: false },
-        { url: '/?page=2', label: 'Next &raquo;', active: false },
-    ],
-    current_page: 1,
-    last_page: 3,
-    from: 1,
-    to: 5,
-    per_page: 5,
-    total: 15,
-    first_page_url: '/?page=1',
-    last_page_url: '/?page=3',
-    next_page_url: '/?page=2',
-    prev_page_url: null,
-    path: '/',
-};
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Namespace', href: namespaceRoutes.index.url() }];
 
 const formatDateTime = (iso?: string) => {
     if (!iso) return '–';
@@ -51,15 +23,25 @@ const formatDateTime = (iso?: string) => {
     }
 };
 
-export default function NamespacePage() {
-    const [search, setSearch] = useState('');
+export default function NamespacePage({ namespaces }: { namespaces: PaginatedResponse<Namespace> }) {
+    console.log('namespaces', namespaces);
+    const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
+
+    const handleSearch = () => {
+        router.get(namespaceRoutes.index.url(), { search }, { preserveState: true, replace: true });
+    };
 
     const handleDelete = useCallback((item: Namespace) => {
         toast.warning(`Are you sure you want to delete "${item.name}"?`, {
             description: 'This action cannot be undone.',
             action: {
                 label: 'Delete',
-                onClick: () => toast.success(`Namespace "${item.name}" has been deleted.`),
+                onClick: () => {
+                    router.delete(namespaceRoutes.destroy.url({ namespace: item.id }), {
+                        onSuccess: () => toast.success(`Namespace "${item.name}" has been deleted.`),
+                        onError: () => toast.error('Failed to delete the namespace.'),
+                    });
+                },
             },
             cancel: { label: 'Cancel', onClick: () => {} },
             duration: 8000,
@@ -84,7 +66,7 @@ export default function NamespacePage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                                <Link href={edit(item.id)}>Edit</Link>
+                                <Link href={namespaceRoutes.edit.url({ namespace: item.id })}>Edit</Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="text-red-600 focus:bg-red-50 focus:text-red-500"
@@ -117,23 +99,25 @@ export default function NamespacePage() {
                             className="flex-1"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         />
-                        <Button className="ml-2">Search</Button>
+                        <Button className="ml-2" onClick={handleSearch}>
+                            Search
+                        </Button>
                     </div>
                 </FilterCard>
 
                 <div className="rounded-xl bg-white p-4 shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-end">
                         <Button asChild>
-                            <Link href={namespaces.create.url()}>Create</Link>
+                            <Link href={namespaceRoutes.create.url()}>Create</Link>
                         </Button>
                     </div>
 
                     <div className="overflow-x-auto">
-                        <DataTable columns={columns} data={dummyNamespaces.data} />
+                        <DataTable columns={columns} data={namespaces} />
                     </div>
 
-                    <Pagination links={dummyNamespaces.links} className="mt-6 flex justify-center" />
                 </div>
             </div>
         </AppLayout>

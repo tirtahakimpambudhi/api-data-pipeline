@@ -155,7 +155,6 @@ class DatabaseSeeder extends Seeder
 
             Users::factory(4)->state(['role_id' => $slaveRoleId[0]])->create();
             Users::factory(1)->state(['role_id' => $almightyRoleId[0]])->create();
-            Users::factory(1)->state(['name' => 'cahyo', 'password' => Hash::make('123456789'), 'role_id' => $almightyRoleId[0], 'email' => 'cahyo@gmail.com'])->create();
 
             DB::commit();
 
