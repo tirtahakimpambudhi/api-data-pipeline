@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
-import namespaces, { store } from '@/routes/namespaces';
+import environments, { store } from '@/routes/environments';
 import { Head, Link, useForm } from '@inertiajs/react';
 import React from 'react';
 
@@ -28,7 +28,7 @@ export default function CreatePage() {
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-lg rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">
-                        <h1 className="text-xl font-semibold">Create New Namespace</h1>
+                        <h1 className="text-xl font-semibold">Create New Environments</h1>
                         <div className="flex gap-2">
                             <Button type="button" variant="outline" onClick={handleReset} disabled={!isDirty || processing}>
                                 Reset
@@ -59,7 +59,7 @@ export default function CreatePage() {
 
                         <div className="flex items-center justify-end">
                             <Button asChild variant="ghost">
-                                <Link href={namespaces.index.url()}>Cancel</Link>
+                                <Link href={environments.index.url()}>Cancel</Link>
                             </Button>
                         </div>
                     </form>

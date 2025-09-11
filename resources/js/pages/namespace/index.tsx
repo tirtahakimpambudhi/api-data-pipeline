@@ -1,5 +1,6 @@
 import DataTable, { type ColumnDefinition } from '@/components/data-table';
 import FilterCard from '@/components/filter-card';
+import Pagination from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -24,14 +25,22 @@ const formatDateTime = (iso?: string) => {
 
 export default function NamespacePage({ namespaces }: { namespaces: PaginatedResponse<Namespace> }) {
     const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return namespaces.slice(startIndex, endIndex);
+    }, [namespaces, currentPage, itemsPerPage]);
 
     const handleSearch = () => {
-    if (search) {
-        router.get(namespaceRoutes.search.url(), { search }, { preserveState: true, replace: true });
-    } else {
-        router.get(namespaceRoutes.index.url(), {}, { preserveState: true, replace: true });
-    }
-};
+        if (search) {
+            router.get(namespaceRoutes.search.url(), { search }, { preserveState: true, replace: true });
+        } else {
+            router.get(namespaceRoutes.index.url(), {}, { preserveState: true, replace: true });
+        }
+    };
 
     const handleDelete = useCallback((item: Namespace) => {
         toast.warning(`Are you sure you want to delete "${item.name}"?`, {
@@ -53,7 +62,7 @@ export default function NamespacePage({ namespaces }: { namespaces: PaginatedRes
     const handleReset = () => {
         setSearch('');
         router.get(namespaceRoutes.index.url(), {}, { preserveState: true, replace: true });
-    }
+    };
 
     const columns: ColumnDefinition<Namespace>[] = useMemo(
         () => [
@@ -95,7 +104,7 @@ export default function NamespacePage({ namespaces }: { namespaces: PaginatedRes
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Namespace" />
-            <Toaster richColors position="top-center" />
+            <Toaster richColors theme="system" position="top-center" />
 
             <div className="flex flex-col gap-4 p-4 lg:p-6">
                 <FilterCard title="Filter Namespace" description="Filter namespace by name" className="mx-auto w-full max-w-lg">
@@ -112,12 +121,12 @@ export default function NamespacePage({ namespaces }: { namespaces: PaginatedRes
                             Search
                         </Button>
                         <Button className="ml-2" onClick={handleReset}>
-                             Reset
+                            Reset
                         </Button>
                     </div>
                 </FilterCard>
 
-                <div className="rounded-xl bg-white p-4 shadow-sm lg:p-6">
+                <div className="rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-end">
                         <Button asChild>
                             <Link href={namespaceRoutes.create.url()}>Create</Link>
@@ -125,9 +134,15 @@ export default function NamespacePage({ namespaces }: { namespaces: PaginatedRes
                     </div>
 
                     <div className="overflow-x-auto">
-                        <DataTable columns={columns} data={namespaces} />
+                        <DataTable columns={columns} data={paginatedData} />
+                        <Pagination
+                            className="mt-6 flex justify-center"
+                            currentPage={currentPage}
+                            totalItems={namespaces.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={(page) => setCurrentPage(page)}
+                        />
                     </div>
-
                 </div>
             </div>
         </AppLayout>

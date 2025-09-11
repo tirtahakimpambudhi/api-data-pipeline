@@ -1,25 +1,25 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
-import namespaces from '@/routes/namespaces';
-import type { Namespace } from '@/types';
+import environments from '@/routes/environments';
+import { Environment } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import React, { useRef } from 'react';
 
 type Props = {
-    namespace: Namespace;
+    environment: Environment;
 };
 
-export default function EditPage({ namespace }: Props) {
-    const initial = useRef({ name: namespace.name });
+export default function EditPage({ environment }: Props) {
+    const initial = useRef({ name: environment.name });
 
     const { data, setData, put, processing, errors, wasSuccessful } = useForm({
-        name: namespace.name ?? '',
+        name: environment.name ?? '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(namespaces.update.url({ namespace: namespace.id }), {
+        put(environments.update.url({ environment: environment.id }), {
             preserveScroll: true,
         });
     };
@@ -33,10 +33,10 @@ export default function EditPage({ namespace }: Props) {
 
     return (
         <AppLayout>
-            <Head title="Edit Namespace" />
+            <Head title="Edit Environment" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-lg rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
-                    <h1 className="text-xl font-semibold">Edit Namespace</h1>
+                    <h1 className="text-xl font-semibold">Edit Environment</h1>
                     <p className="mb-4 text-muted-foreground">Update the details below.</p>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -57,7 +57,7 @@ export default function EditPage({ namespace }: Props) {
 
                         <div className="flex items-center justify-between">
                             <Button asChild variant="ghost">
-                                <Link href={namespaces.index.url()}>Cancel</Link>
+                                <Link href={environments.index.url()}>Cancel</Link>
                             </Button>
                             <div className="flex gap-2">
                                 <Button type="button" variant="outline" onClick={handleReset} disabled={!isDirty || processing}>

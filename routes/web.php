@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EnvironmentController;
 use App\Http\Controllers\NamespaceController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -28,9 +29,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('service');
 
     // Environment
-    Route::get('environment', function () {
-        return Inertia::render('environment/index');
-    })->name('environment');
+    Route::get('environments/search', [EnvironmentController::class, 'search'])->name('environments.search');
+    Route::resource('environments', EnvironmentController::class);
 
     // Channel
     Route::get('channel', function () {
