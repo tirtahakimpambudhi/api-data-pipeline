@@ -40,11 +40,5 @@ class UpdateServiceRequest extends FormRequest
         ];
     }
 
-    /**
-     * @throws ValidationServiceException
-     */
-    public function failedValidation(Validator $validator)
-    {
-        throw new ValidationServiceException(['errors' => $validator->errors()->toArray()]);
-    }
+
 }
