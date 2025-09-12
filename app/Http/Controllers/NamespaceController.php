@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\NotFoundServiceException;
+use App\Exceptions\ValidationServiceException;
 use App\Http\Requests\General\PaginationRequest;
 use App\Http\Requests\General\SearchPaginationRequest;
 use App\Http\Requests\Namespaces\CreateNamespaceRequest;
@@ -11,10 +13,11 @@ use App\Http\Requests\Namespaces\CreateServiceRequest;
 use App\Http\Requests\Namespaces\UpdateNamespaceRequest;
 use App\Service\Contracts\NamespacesService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
+
+
 
 class NamespaceController extends Controller
 {
@@ -25,24 +28,88 @@ class NamespaceController extends Controller
         $this->namespacesService = $namespacesService;
     }
 
-    public function index(PaginationRequest $request): Response
+    private function emptyPaginated(): array
     {
-        $namespaces = $this->namespacesService->getAll($request);
-
-        return Inertia::render('namespace/index', [
-            'namespaces' => $namespaces,
-            'filters' => $request->all(['page', 'size']),
-        ]);
+        return [
+            'data' => [],
+            'meta' => [
+                'total'        => 0,
+                'per_page'     => 0,
+                'current_page' => 1,
+                'last_page'    => 1,
+            ],
+        ];
     }
 
-    public function search(SearchPaginationRequest $request): Response
+    private function inertiaWithStatus(Response $resp, int $status): \Symfony\Component\HttpFoundation\Response
     {
-        $namespaces = $this->namespacesService->search($request);
+        return $resp->toResponse(request())->setStatusCode($status);
+    }
 
-        return Inertia::render('namespace/index', [
-            'namespaces' => $namespaces,
-            'filters' => $request->all(['search', 'page', 'size']),
-        ]);
+    public function index(PaginationRequest $request)
+    {
+        try {
+            $namespaces = $this->namespacesService->getAll($request);
+
+            return Inertia::render('namespace/index', [
+                'namespaces' => $namespaces,
+                'filters'    => $request->all(['page', 'size']),
+                'errors'     => null,
+                'serverError'=> null,
+                'statusCode' => 200,
+            ]);
+        } catch (AppServiceException $e) {
+            $resp = Inertia::render('namespace/index', [
+                'namespaces' => $this->emptyPaginated(),
+                'filters'    => $request->all(['page', 'size']),
+                'errors'     => method_exists($e, 'toMessageBag') ? $e->toMessageBag()->toArray() : ['error' => [$e->getMessage()]],
+                'serverError'=> $e->getMessage(),
+                'statusCode' => 422,
+            ]);
+            return $this->inertiaWithStatus($resp, 422);
+        } catch (Throwable $e) {
+            $resp = Inertia::render('namespace/index', [
+                'namespaces' => $this->emptyPaginated(),
+                'filters'    => $request->all(['page', 'size']),
+                'errors'     => ['error' => ['Internal server error.']],
+                'serverError'=> config('app.debug') ? $e->getMessage() : 'Internal server error.',
+                'statusCode' => 500,
+            ]);
+            return $this->inertiaWithStatus($resp, 500);
+        }
+    }
+
+    public function search(SearchPaginationRequest $request)
+    {
+        try {
+            $namespaces = $this->namespacesService->search($request);
+
+            return Inertia::render('namespace/index', [
+                'namespaces' => $namespaces,
+                'filters'    => $request->all(['search', 'page', 'size']),
+                'errors'     => null,
+                'serverError'=> null,
+                'statusCode' => 200,
+            ]);
+        } catch (AppServiceException $e) {
+            $resp = Inertia::render('namespace/index', [
+                'namespaces' => $this->emptyPaginated(),
+                'filters'    => $request->all(['search', 'page', 'size']),
+                'errors'     => method_exists($e, 'toMessageBag') ? $e->toMessageBag()->toArray() : ['error' => [$e->getMessage()]],
+                'serverError'=> $e->getMessage(),
+                'statusCode' => 422,
+            ]);
+            return $this->inertiaWithStatus($resp, 422);
+        } catch (Throwable $e) {
+            $resp = Inertia::render('namespace/index', [
+                'namespaces' => $this->emptyPaginated(),
+                'filters'    => $request->all(['search', 'page', 'size']),
+                'errors'     => ['error' => ['Internal server error.']],
+                'serverError'=> config('app.debug') ? $e->getMessage() : 'Internal server error.',
+                'statusCode' => 500,
+            ]);
+            return $this->inertiaWithStatus($resp, 500);
+        }
     }
 
     public function create(): Response
@@ -55,6 +122,10 @@ class NamespaceController extends Controller
         try {
             $this->namespacesService->create($request);
             return redirect()->route('namespaces.index')->with('message', 'Namespace berhasil dibuat.');
+        } catch (ValidationServiceException $e) {
+            // Kirim error bag field-wise ke form
+            $bag = method_exists($e, 'toMessageBag') ? $e->toMessageBag()->toArray() : ($e->getErrors() ?? []);
+            return back()->withErrors($bag)->withInput();
         } catch (ConflictServiceException $e) {
             return back()->withErrors(['name' => $e->getMessage()])->withInput();
         } catch (Throwable $e) {
@@ -62,13 +133,12 @@ class NamespaceController extends Controller
         }
     }
 
+
     public function show(int $id): Response
     {
         try {
             $namespace = $this->namespacesService->getById($id);
-            return Inertia::render('namespace/show', [
-                'namespace' => $namespace,
-            ]);
+            return Inertia::render('namespace/show', ['namespace' => $namespace]);
         } catch (NotFoundServiceException $e) {
             abort(404);
         }
@@ -78,9 +148,7 @@ class NamespaceController extends Controller
     {
         try {
             $namespace = $this->namespacesService->getById($id);
-            return Inertia::render('namespace/edit', [
-                'namespace' => $namespace,
-            ]);
+            return Inertia::render('namespace/edit', ['namespace' => $namespace]);
         } catch (NotFoundServiceException $e) {
             abort(404);
         }
@@ -91,6 +159,9 @@ class NamespaceController extends Controller
         try {
             $this->namespacesService->update($id, $request);
             return redirect()->route('namespaces.index')->with('message', 'Namespace berhasil diperbarui.');
+        } catch (ValidationServiceException $e) {
+            $bag = method_exists($e, 'toMessageBag') ? $e->toMessageBag()->toArray() : ($e->getErrors() ?? []);
+            return back()->withErrors($bag)->withInput();
         } catch (NotFoundServiceException $e) {
             return back()->with('error', $e->getMessage());
         } catch (ConflictServiceException $e) {
@@ -111,7 +182,7 @@ class NamespaceController extends Controller
             return back()->with('error', 'Terjadi kesalahan internal. Gagal menghapus namespace.');
         }
     }
-    
+
     public function storeService(CreateServiceRequest $request, int $namespaceId): RedirectResponse
     {
         try {

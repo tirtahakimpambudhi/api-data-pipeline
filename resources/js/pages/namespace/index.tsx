@@ -1,16 +1,26 @@
 import DataTable, { type ColumnDefinition } from '@/components/data-table';
 import FilterCard from '@/components/filter-card';
-import Pagination from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'; // pastikan ada komponen ini
 import AppLayout from '@/layouts/app-layout';
 import namespaceRoutes from '@/routes/namespaces';
 import { type BreadcrumbItem, type Namespace, type PaginatedResponse } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
+
+type ErrorBag = Record<string, string[]>;
+
+type Props = {
+    namespaces?: PaginatedResponse<Namespace>;
+    filters?: Record<string, unknown>;
+    errors?: ErrorBag | null;
+    serverError?: string | null;
+    statusCode?: number;
+};
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Namespace', href: namespaceRoutes.index.url() }];
 
@@ -23,16 +33,15 @@ const formatDateTime = (iso?: string) => {
     }
 };
 
-export default function NamespacePage({ namespaces }: { namespaces: PaginatedResponse<Namespace> }) {
+export default function NamespacePage({ namespaces, errors, serverError, statusCode }: Props) {
     const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
 
-    const paginatedData = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        return namespaces.slice(startIndex, endIndex);
-    }, [namespaces, currentPage, itemsPerPage]);
+    // Tampilkan toast untuk serverError sekali saat mount/prop change
+    useEffect(() => {
+        if (serverError) {
+            toast.error(serverError);
+        }
+    }, [serverError]);
 
     const handleSearch = () => {
         if (search) {
@@ -101,12 +110,37 @@ export default function NamespacePage({ namespaces }: { namespaces: PaginatedRes
         [handleDelete],
     );
 
+    // Fallback aman jika namespaces null/undefined akibat error
+    const safeNamespaces: PaginatedResponse<Namespace> = namespaces ?? {
+        data: [],
+        meta: { total: 0, per_page: 0, current_page: 1, last_page: 1 },
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Namespace" />
-            <Toaster richColors theme="system" position="top-center" />
+            <Toaster richColors position="top-center" />
 
             <div className="flex flex-col gap-4 p-4 lg:p-6">
+                {/* Alert error dari server jika ada */}
+                {(serverError || (errors && Object.keys(errors).length > 0)) && (
+                    <Alert variant="destructive" className="mx-auto w-full max-w-3xl">
+                        <AlertTitle>
+                            {statusCode && statusCode !== 200 ? `Error ${statusCode}` : 'Error'}
+                        </AlertTitle>
+                        <AlertDescription>
+                            {serverError && <div className="mb-2">{serverError}</div>}
+                            {errors && (
+                                <ul className="list-disc pl-5 space-y-1">
+                                    {Object.entries(errors).map(([field, msgs]) =>
+                                        msgs.map((msg, i) => <li key={`${field}-${i}`}>{field}: {msg}</li>)
+                                    )}
+                                </ul>
+                            )}
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 <FilterCard title="Filter Namespace" description="Filter namespace by name" className="mx-auto w-full max-w-lg">
                     <div className="flex w-full max-w-lg items-center">
                         <Input
@@ -121,12 +155,12 @@ export default function NamespacePage({ namespaces }: { namespaces: PaginatedRes
                             Search
                         </Button>
                         <Button className="ml-2" onClick={handleReset}>
-                            Reset
+                             Reset
                         </Button>
                     </div>
                 </FilterCard>
 
-                <div className="rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
+                <div className="rounded-xl bg-white p-4 shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-end">
                         <Button asChild>
                             <Link href={namespaceRoutes.create.url()}>Create</Link>
@@ -134,15 +168,9 @@ export default function NamespacePage({ namespaces }: { namespaces: PaginatedRes
                     </div>
 
                     <div className="overflow-x-auto">
-                        <DataTable columns={columns} data={paginatedData} />
-                        <Pagination
-                            className="mt-6 flex justify-center"
-                            currentPage={currentPage}
-                            totalItems={namespaces.length}
-                            itemsPerPage={itemsPerPage}
-                            onPageChange={(page) => setCurrentPage(page)}
-                        />
+                        <DataTable columns={columns} data={namespaces} />
                     </div>
+
                 </div>
             </div>
         </AppLayout>
