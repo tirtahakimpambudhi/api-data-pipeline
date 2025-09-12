@@ -39,8 +39,4 @@ class CreateConfigurationRequest extends FormRequest
         ];
     }
 
-    public function failedValidation(Validator $validator)
-    {
-        throw new ValidationServiceException(['errors' => $validator->errors()->toArray()]);
-    }
 }
