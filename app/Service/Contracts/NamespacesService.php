@@ -13,11 +13,11 @@ use Illuminate\Support\Collection;
 
 interface NamespacesService
 {
-    public function getAll(PaginationRequest $data): LengthAwarePaginator | Collection;
+    public function getAll(PaginationRequest | null $data, bool $onlyNamespace = false): LengthAwarePaginator | Collection;
 
     public function getById(int $id): Collection | null;
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator | Collection;
+    public function search(SearchPaginationRequest | null $data, bool $onlyNamespace = false): LengthAwarePaginator | Collection;
 
     public function create(CreateNamespaceRequest $data): Collection;
 
