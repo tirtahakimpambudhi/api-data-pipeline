@@ -25,5 +25,4 @@ class CreateEnvironmentRequest extends FormRequest
             'name.unique'   => 'Name already exists!',
         ];
     }
-
 }
