@@ -40,18 +40,25 @@ class NamespacesServiceImpl implements NamespacesService
     /**
      * Return paginated or full collection (when page/size omitted or <=0).
      */
-    public function getAll(PaginationRequest $data): LengthAwarePaginator|Collection
+    public function getAll(PaginationRequest | null $data, bool $onlyNamespace = false): LengthAwarePaginator|Collection
     {
         try {
             $this->checkPermission("read");
 
             $this->logger->info("Start of getAll namespaces (service layer)");
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+            }
 
-            $value = $data->validated();
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
+            $query = $this->model->newQuery();
 
-            $query = $this->model->newQuery()->with(['services', 'servicesEnvironments']);
+            if (!$onlyNamespace) {
+                $query->with(['services', 'servicesEnvironments']);
+            }
 
             if ($page > 0 && $size > 0) {
                 return $this->applyPagination(query: $query, page: $page, size: $size);
@@ -74,19 +81,27 @@ class NamespacesServiceImpl implements NamespacesService
     /**
      * Same pattern as getAll, with LIKE filter by name.
      */
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator|Collection
+    public function search(SearchPaginationRequest | null $data, bool $onlyNamespace = false): LengthAwarePaginator|Collection
     {
         try {
             $this->checkPermission("read");
 
             $this->logger->info("Start of search namespaces (service layer)");
+            $page = 0;
+            $size = 0;
+            $searchValue = '';
+            if ($data !== null) {
+                $value       = $data->validated();
+                $searchValue = trim((string)($value['search'] ?? ''));
+                $page        = (int)($value['page'] ?? 0);
+                $size        = (int)($value['size'] ?? 0);
+            }
 
-            $value       = $data->validated();
-            $searchValue = trim((string)($value['search'] ?? ''));
-            $page        = (int)($value['page'] ?? 0);
-            $size        = (int)($value['size'] ?? 0);
+            $query = $this->model->newQuery();
 
-            $query = $this->model->newQuery()->with(['services', 'servicesEnvironments']);
+            if (!$onlyNamespace) {
+                $query->with(['services', 'servicesEnvironments']);
+            }
 
             if ($searchValue !== '') {
                 $query->whereLike('name',  "%{$searchValue}%");
