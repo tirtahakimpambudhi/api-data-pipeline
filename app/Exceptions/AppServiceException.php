@@ -19,4 +19,9 @@ abstract class AppServiceException extends \Exception
     {
         return new MessageBag(['errors' => [$this->getMessage()]]);
     }
+
+    public function getBags(): MessageBag
+    {
+        return new MessageBag(['errors' => [$this->getMessage()]]);
+    }
 }
