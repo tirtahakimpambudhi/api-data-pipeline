@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
+use App\Exceptions\InternalServiceException;
 use App\Exceptions\NotFoundServiceException;
+use App\Exceptions\PermissionDeniedServiceException;
+use App\Exceptions\UnauthorizedServiceException;
 use App\Exceptions\ValidationServiceException;
 use App\Http\Requests\General\PaginationRequest;
 use App\Http\Requests\General\SearchPaginationRequest;
@@ -13,8 +16,11 @@ use App\Http\Requests\Namespaces\CreateServiceRequest;
 use App\Http\Requests\Namespaces\UpdateNamespaceRequest;
 use App\Service\Contracts\NamespacesService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 
@@ -41,7 +47,7 @@ class NamespaceController extends Controller
         ];
     }
 
-    private function inertiaWithStatus(Response $resp, int $status): \Symfony\Component\HttpFoundation\Response
+    private function inertiaWithStatus(Response $resp, int $status)
     {
         return $resp->toResponse(request())->setStatusCode($status);
     }
@@ -50,7 +56,6 @@ class NamespaceController extends Controller
     {
         try {
             $namespaces = $this->namespacesService->getAll($request);
-
             return Inertia::render('namespace/index', [
                 'namespaces' => $namespaces,
                 'filters'    => $request->all(['page', 'size']),
@@ -59,6 +64,9 @@ class NamespaceController extends Controller
                 'statusCode' => 200,
             ]);
         } catch (AppServiceException $e) {
+            if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, $request)) {
+                return $redirect;
+            }
             $resp = Inertia::render('namespace/index', [
                 'namespaces' => $this->emptyPaginated(),
                 'filters'    => $request->all(['page', 'size']),
@@ -92,6 +100,9 @@ class NamespaceController extends Controller
                 'statusCode' => 200,
             ]);
         } catch (AppServiceException $e) {
+            if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, $request)) {
+                return $redirect;
+            }
             $resp = Inertia::render('namespace/index', [
                 'namespaces' => $this->emptyPaginated(),
                 'filters'    => $request->all(['search', 'page', 'size']),
@@ -112,8 +123,17 @@ class NamespaceController extends Controller
         }
     }
 
-    public function create(): Response
+    public function create(): Response|RedirectResponse
     {
+        $user = Auth::guard('web')->user();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'User must be logged in.');
+        }
+
+        if (!$user->hasPermission("namespaces", "create")) {
+            return redirect()->route('login')->with('error', 'User doesn\'t have permissions.');
+        };
+
         return Inertia::render('namespace/create');
     }
 
@@ -121,36 +141,52 @@ class NamespaceController extends Controller
     {
         try {
             $this->namespacesService->create($request);
-            return redirect()->route('namespaces.index')->with('message', 'Namespace berhasil dibuat.');
-        } catch (ValidationServiceException $e) {
-            // Kirim error bag field-wise ke form
-            $bag = method_exists($e, 'toMessageBag') ? $e->toMessageBag()->toArray() : ($e->getErrors() ?? []);
-            return back()->withErrors($bag)->withInput();
-        } catch (ConflictServiceException $e) {
-            return back()->withErrors(['name' => $e->getMessage()])->withInput();
-        } catch (Throwable $e) {
-            return back()->with('error', 'Terjadi kesalahan internal. Gagal membuat namespace.')->withInput();
+            return redirect()->route('namespaces.index')->with('message', 'Namespaces created successfully.');
+        } catch (AppServiceException $e) {
+            if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, $request)) {
+                return $redirect;
+            }
+            return back()->withErrors($e->getBags())->withInput();
+        }  catch (Throwable $e) {
+            return back()->with('error', 'Something wrong in internal, please try again create namespace : ' . $e->getMessage())->withInput();
         }
     }
 
 
-    public function show(int $id): Response
+    public function show(int $id): Response | RedirectResponse
     {
         try {
             $namespace = $this->namespacesService->getById($id);
             return Inertia::render('namespace/show', ['namespace' => $namespace]);
-        } catch (NotFoundServiceException $e) {
-            abort(404);
+        } catch (AppServiceException $e) {
+            if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, request())) {
+                return $redirect;
+            }
+            if ($e instanceof NotFoundServiceException) {
+                abort(404, $e->getMessage());
+            }
+            return back()->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            return back()->with('error', 'Something wrong in internal, please try again show namespace : ' . $e->getMessage())->withInput();
         }
     }
 
-    public function edit(int $id): Response
+
+    public function edit(int $id): Response | RedirectResponse
     {
         try {
             $namespace = $this->namespacesService->getById($id);
             return Inertia::render('namespace/edit', ['namespace' => $namespace]);
-        } catch (NotFoundServiceException $e) {
-            abort(404);
+        } catch (AppServiceException $e) {
+            if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, request())) {
+                return $redirect;
+            }
+            if ($e instanceof NotFoundServiceException) {
+                abort(404, $e->getMessage());
+            }
+            return back()->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            return back()->with('error', 'Something wrong in internal, please try again edit namespace : ' . $e->getMessage())->withInput();
         }
     }
 
@@ -158,16 +194,21 @@ class NamespaceController extends Controller
     {
         try {
             $this->namespacesService->update($id, $request);
-            return redirect()->route('namespaces.index')->with('message', 'Namespace berhasil diperbarui.');
-        } catch (ValidationServiceException $e) {
-            $bag = method_exists($e, 'toMessageBag') ? $e->toMessageBag()->toArray() : ($e->getErrors() ?? []);
-            return back()->withErrors($bag)->withInput();
-        } catch (NotFoundServiceException $e) {
+            return redirect()->route('namespaces.index')->with('message', 'Namespace updated successfully.');
+        } catch (AppServiceException $e) {
+            if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, request())) {
+                return $redirect;
+            }
+            if ($e instanceof NotFoundServiceException) {
+                return back()->with('error', $e->getMessage());
+            }
+
+            if ($e instanceof ConflictServiceException) {
+                return back()->withErrors(['name' => $e->getMessage()])->withInput();
+            }
             return back()->with('error', $e->getMessage());
-        } catch (ConflictServiceException $e) {
-            return back()->withErrors(['name' => $e->getMessage()])->withInput();
         } catch (Throwable $e) {
-            return back()->with('error', 'Terjadi kesalahan internal. Gagal memperbarui namespace.')->withInput();
+            return back()->with('error', 'Something wrong in internal, please try again update namespace : ' . $e->getMessage())->withInput();
         }
     }
 
@@ -175,11 +216,21 @@ class NamespaceController extends Controller
     {
         try {
             $this->namespacesService->delete($id);
-            return redirect()->route('namespaces.index')->with('message', 'Namespace berhasil dihapus.');
-        } catch (NotFoundServiceException $e) {
+            return redirect()->route('namespaces.index')->with('message', 'Namespace deleted successfully.');
+        } catch (AppServiceException $e) {
+            if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, request())) {
+                return $redirect;
+            }
+            if ($e instanceof NotFoundServiceException) {
+                return back()->with('error', $e->getMessage());
+            }
+
+            if ($e instanceof ConflictServiceException) {
+                return back()->withErrors(['name' => $e->getMessage()])->withInput();
+            }
             return back()->with('error', $e->getMessage());
         } catch (Throwable $e) {
-            return back()->with('error', 'Terjadi kesalahan internal. Gagal menghapus namespace.');
+            return back()->with('error', 'Something wrong in internal, please try again delete namespace : ' . $e->getMessage())->withInput();
         }
     }
 
@@ -187,13 +238,21 @@ class NamespaceController extends Controller
     {
         try {
             $this->namespacesService->createService($namespaceId, $request);
-            return redirect()->route('namespaces.show', $namespaceId)->with('message', 'Service berhasil ditambahkan.');
-        } catch (NotFoundServiceException $e) {
+            return redirect()->route('namespaces.show', $namespaceId)->with('message', 'Service successfully created.');
+        }catch (AppServiceException $e) {
+            if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, request())) {
+                return $redirect;
+            }
+            if ($e instanceof NotFoundServiceException) {
+                return back()->with('error', $e->getMessage());
+            }
+
+            if ($e instanceof ConflictServiceException) {
+                return back()->withErrors(['name' => $e->getMessage()])->withInput();
+            }
             return back()->with('error', $e->getMessage());
-        } catch (ConflictServiceException $e) {
-            return back()->withErrors(['name' => $e->getMessage()])->withInput();
         } catch (Throwable $e) {
-            return back()->with('error', 'Terjadi kesalahan internal. Gagal menambahkan service.')->withInput();
+            return back()->with('error', 'Something wrong in internal, please try again create service with namespace : ' . $e->getMessage() )->withInput();
         }
     }
 }
