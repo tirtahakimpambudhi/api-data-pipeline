@@ -77,6 +77,8 @@ export interface ServiceEnvironment {
     environment_id: number;
     service?: Service;
     environment?: Environment;
+    created_at: string;
+    updated_at?: string;
 }
 
 export interface Configuration {
@@ -85,6 +87,8 @@ export interface Configuration {
     channel_id: number;
     service_environment?: ServiceEnvironment;
     channel?: Channel;
+    created_at: string;
+    updated_at?: string;
 }
 
 export interface Role {
