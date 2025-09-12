@@ -60,15 +60,24 @@ class EnvironmentsServiceImpl implements EnvironmentsService
         return $row;
     }
 
-    public function getAll(PaginationRequest $data): LengthAwarePaginator|Collection
+    public function getAll(PaginationRequest | null $data, bool $onlyEnv = false): LengthAwarePaginator|Collection
     {
         try {
             $this->checkPermission('read');
-            $value = $data->validated();
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
 
-            $query = $this->model->newQuery()->with(['services', 'servicesEnvironments', 'configurations']);
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+            }
+
+            $query = $this->model->newQuery();
+
+            if (!$onlyEnv) {
+                $query->with(['services', 'servicesEnvironments', 'configurations']);
+            }
 
             if ($page > 0 && $size > 0) {
                 return $this->applyPagination($query, $page, $size);
@@ -81,16 +90,24 @@ class EnvironmentsServiceImpl implements EnvironmentsService
         }
     }
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator|Collection
+    public function search(SearchPaginationRequest | null $data, bool $onlyEnv = false): LengthAwarePaginator|Collection
     {
         try {
             $this->checkPermission('read');
-            $value = $data->validated();
-            $term  = trim((string)($value['search'] ?? ''));
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
+            $page = 0;
+            $size = 0;
+            $term = '';
+            if ($data !== null) {
+                $value = $data->validated();
+                $term  = trim((string)($value['search'] ?? ''));
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+            }
 
-            $query = $this->model->newQuery()->with(['services', 'servicesEnvironments', 'configurations']);
+            $query = $this->model->newQuery();
+            if (!$onlyEnv) {
+                $query->with(['services', 'servicesEnvironments', 'configurations']);
+            }
             if ($term !== '') {
                 $query->whereLike('name', "%{$term}%");
             }
