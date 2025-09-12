@@ -15,15 +15,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(
-            NamespacesService::class,
-            NamespacesServiceImpl::class
-        );
-
-        $this->app->bind(
-            EnvironmentsService::class,
-            EnvironmentsServiceImpl::class
-        );
     }
 
     /**
