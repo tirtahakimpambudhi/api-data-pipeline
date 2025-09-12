@@ -13,11 +13,11 @@ use Illuminate\Support\Collection;
 
 interface ServicesService
 {
-    public function getAll(PaginationRequest $data): LengthAwarePaginator | Collection;
+    public function getAll(PaginationRequest | null $data, bool $onlyService = false): LengthAwarePaginator | Collection;
 
     public function getById(int $id): Collection;
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator | Collection;
+    public function search(SearchPaginationRequest | null $data, bool $onlyService = false): LengthAwarePaginator | Collection;
 
     public function create(CreateServiceRequest $data): Collection;
     public function update(int $id, UpdateServiceRequest $data): Collection;
