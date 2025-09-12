@@ -53,15 +53,23 @@ class ConfigurationsServiceImpl implements ConfigurationsService
         return $row;
     }
 
-    public function getAll(PaginationRequest $data): LengthAwarePaginator|Collection
+    public function getAll(PaginationRequest | null $data, bool $onlyConf = false): LengthAwarePaginator|Collection
     {
         try {
             $this->checkPermission('read');
-            $value = $data->validated();
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
 
-            $query = $this->model->newQuery()->with(['serviceEnvironment.service.namespace','serviceEnvironment.environment','channel']);
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+            }
+
+            $query = $this->model->newQuery();
+            if (!$onlyConf) {
+                $query->with(['serviceEnvironment.service.namespace','serviceEnvironment.environment','channel']);
+            };
 
             if ($page > 0 && $size > 0) return $this->applyPagination($query, $page, $size);
             return $query->get();
@@ -69,21 +77,25 @@ class ConfigurationsServiceImpl implements ConfigurationsService
         catch (\Throwable $e) { throw new InternalServiceException('Failed to load configurations. Please try again later.'); }
     }
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator|Collection
+    public function search(SearchPaginationRequest | null $data, bool $onlyConf = false): LengthAwarePaginator|Collection
     {
         try {
             $this->checkPermission('read');
-            $value  = $data->validated();
-            $term   = trim((string)($value['search'] ?? ''));
-            $page   = (int)($value['page'] ?? 0);
-            $size   = (int)($value['size'] ?? 0);
-            $seId   = $value['service_environment_id'] ?? null;
-            $chId   = $value['channel_id'] ?? null;
+            $term   = '';
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+                $term   = trim((string)($value['search'] ?? ''));
+            }
 
-            $query = $this->model->newQuery()->with(['serviceEnvironment.service.namespace','serviceEnvironment.environment','channel']);
+            $query = $this->model->newQuery();
 
-            if ($seId) $query->where('service_environment_id', (int)$seId);
-            if ($chId) $query->where('channel_id', (int)$chId);
+            if (!$onlyConf) {
+                $query->with(['serviceEnvironment.service.namespace','serviceEnvironment.environment','channel']);
+            };
 
             if ($term !== '') {
                 $query->where(function($q) use ($term) {
