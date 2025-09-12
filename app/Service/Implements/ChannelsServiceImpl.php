@@ -53,7 +53,7 @@ class ChannelsServiceImpl implements ChannelsService
         return $row;
     }
 
-    public function getAll(PaginationRequest $data): LengthAwarePaginator|Collection
+    public function getAll(PaginationRequest | null $data, bool $onlyChannel = false): LengthAwarePaginator|Collection
     {
         try {
             $this->checkPermission('read');
@@ -69,7 +69,7 @@ class ChannelsServiceImpl implements ChannelsService
         catch (\Throwable $e) { throw new InternalServiceException('Failed to load channels. Please try again later.'); }
     }
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator|Collection
+    public function search(SearchPaginationRequest | null $data, bool $onlyChannel = false): LengthAwarePaginator|Collection
     {
         try {
             $this->checkPermission('read');
