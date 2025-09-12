@@ -8,6 +8,7 @@ use App\Http\Requests\General\PaginationRequest;
 use App\Http\Requests\General\SearchPaginationRequest;
 use App\Http\Requests\Services\CreateServiceRequest;
 use App\Http\Requests\Services\UpdateServiceRequest;
+use App\Models\Namespaces;
 use App\Service\Contracts\NamespacesService;
 use App\Service\Contracts\ServicesService;
 use Illuminate\Http\RedirectResponse;
@@ -16,7 +17,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
 
-class ServiceController extends Controller
+class ServiceServiceController extends Controller
 {
     /**
      * @var ServicesService
@@ -51,13 +52,12 @@ class ServiceController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(PaginationRequest $request): Response
     {
-        // Ambil semua namespace untuk ditampilkan di form dropdown
-        $namespaces = $this->namespacesService->getAll(new PaginationRequest());
 
+        
         return Inertia::render('service/create', [
-            'namespaces' => $namespaces
+            'namespaces' => Namespaces::all()
         ]);
     }
 
@@ -90,12 +90,10 @@ class ServiceController extends Controller
     {
         try {
             $service = $this->servicesService->getById($id);
-            // Ambil juga semua namespace untuk dropdown di form edit
-            $namespaces = $this->namespacesService->getAll(new PaginationRequest());
 
             return Inertia::render('service/edit', [
                 'service' => $service,
-                'namespaces' => $namespaces
+                'namespaces' => Namespaces::all(),
             ]);
         } catch (NotFoundServiceException) {
             abort(404);

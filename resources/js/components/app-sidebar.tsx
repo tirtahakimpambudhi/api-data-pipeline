@@ -3,10 +3,11 @@ import {
   Sidebar, SidebarContent, SidebarFooter, SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel
 } from '@/components/ui/sidebar';
-import { configuration, dashboard, service, serviceEnvironment, settings } from '@/routes';
+import { configuration, dashboard, serviceEnvironment, settings } from '@/routes';
 import channels from '@/routes/channels';
 import environments from '@/routes/environments';
 import namespaces from '@/routes/namespaces';
+import services from '@/routes/services';
 import { SharedData, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { Cog, FolderTree, LayoutDashboard, Network, Radio, ServerCog, Settings, Wrench, ChevronDown } from 'lucide-react';
@@ -43,7 +44,7 @@ export function AppSidebar() {
 
   const masterItems: NavItem[] = role === 'almighty' ? [
     { title: 'Namespace', href: namespaces.index.url(), icon: FolderTree },
-    { title: 'Service', href: service.url(), icon: ServerCog },
+    { title: 'Service', href: services.index.url(), icon: ServerCog },
     { title: 'Environment', href: environments.index.url(), icon: Network },
     { title: 'Channel', href: channels.index.url(), icon: Radio },
     { title: 'Service Environment', href: serviceEnvironment.url(), icon: Wrench },

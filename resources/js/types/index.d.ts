@@ -101,4 +101,9 @@ export interface Permission {
     description: string | null;
 }
 
-export type PaginatedResponse<T> = T[];
+export type PaginatedResponse<T> = {
+    data: T[];
+    current_page: number;
+    per_page: number;
+    total: number;
+};
