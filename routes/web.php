@@ -3,6 +3,8 @@
 use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\EnvironmentController;
 use App\Http\Controllers\NamespaceController;
+use App\Http\Controllers\ServiceEnvironmentController;
+use App\Http\Controllers\ServiceServiceController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Models\Namespaces;
@@ -25,9 +27,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('namespaces.services.store');
 
     // Service
-    Route::get('service', function () {
-        return Inertia::render('service/index');
-    })->name('service');
+    Route::get('services/search', [ServiceServiceController::class, 'search'])->name('services.search');
+    Route::resource('services', ServiceServiceController::class);
 
     // Environment
     Route::get('environments/search', [EnvironmentController::class, 'search'])->name('environments.search');
@@ -36,14 +37,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Channel
     Route::get('channels/search', [ChannelController::class, 'search'])->name('channels.search');
     Route::resource('channels', ChannelController::class);
-    Route::get('channel', function () {
-        return Inertia::render('channel/index');
-    })->name('channel');
+
 
     // Service Environment
-    Route::get('service-environment', function () {
-        return Inertia::render('service-environment/index');
-    })->name('service-environment');
+    Route::get('service-environments/search', [ServiceEnvironmentController::class, 'search'])->name('service-environments.search');
+    Route::resource('service-environments', ServiceEnvironmentController::class);
+
 
     // Configuration
     Route::get('configuration', function () {
