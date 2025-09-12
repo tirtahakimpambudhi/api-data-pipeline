@@ -3,11 +3,11 @@ import FilterCard from '@/components/filter-card';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'; // pastikan ada komponen ini
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import AppLayout from '@/layouts/app-layout';
 import namespaceRoutes from '@/routes/namespaces';
 import { type BreadcrumbItem, type Namespace, type PaginatedResponse } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
@@ -20,6 +20,11 @@ type Props = {
     errors?: ErrorBag | null;
     serverError?: string | null;
     statusCode?: number;
+    flash: {
+        message ?: string,
+        success ?: string,
+        error ?: string
+    }
 };
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Namespace', href: namespaceRoutes.index.url() }];
@@ -34,14 +39,29 @@ const formatDateTime = (iso?: string) => {
 };
 
 export default function NamespacePage({ namespaces, errors, serverError, statusCode }: Props) {
-    const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
+    const [search, setSearch] = useState(() => {
+        if (typeof window === 'undefined') return '';
+        return new URLSearchParams(window.location.search).get('search') || '';
+    });
 
-    // Tampilkan toast untuk serverError sekali saat mount/prop change
+    const { props } = usePage<Props>();
+
+    const [error, setError] = useState(props.flash?.error);
+    const [success, setSuccess] = useState(props.flash?.success ?? props.flash?.message);
+
     useEffect(() => {
         if (serverError) {
             toast.error(serverError);
         }
     }, [serverError]);
+
+    useEffect(() => {
+        if (error) toast.error(error);
+    }, [error]);
+
+    useEffect(() => {
+        if (success) toast.info(success);
+    }, [success]);
 
     const handleSearch = () => {
         if (search) {
@@ -70,6 +90,8 @@ export default function NamespacePage({ namespaces, errors, serverError, statusC
 
     const handleReset = () => {
         setSearch('');
+        setError(undefined);
+        setSuccess(undefined);
         router.get(namespaceRoutes.index.url(), {}, { preserveState: true, replace: true });
     };
 
@@ -110,30 +132,28 @@ export default function NamespacePage({ namespaces, errors, serverError, statusC
         [handleDelete],
     );
 
-    // Fallback aman jika namespaces null/undefined akibat error
-    const safeNamespaces: PaginatedResponse<Namespace> = namespaces ?? {
-        data: [],
-        meta: { total: 0, per_page: 0, current_page: 1, last_page: 1 },
-    };
+    const safePaginated: PaginatedResponse<Namespace> =
+        namespaces ?? { data: [], meta: { total: 0, per_page: 0, current_page: 1, last_page: 1 } };
 
+    const rows: Namespace[] = (safePaginated.data) ?safePaginated.data :safePaginated;
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Namespace" />
-            <Toaster richColors position="top-center" />
+            <Toaster richColors position="top-right" />
 
             <div className="flex flex-col gap-4 p-4 lg:p-6">
-                {/* Alert error dari server jika ada */}
-                {(serverError || (errors && Object.keys(errors).length > 0)) && (
+                {((errors && Object.keys(errors).length > 0)) && (
                     <Alert variant="destructive" className="mx-auto w-full max-w-3xl">
-                        <AlertTitle>
-                            {statusCode && statusCode !== 200 ? `Error ${statusCode}` : 'Error'}
-                        </AlertTitle>
+                        <AlertTitle>{statusCode && statusCode !== 200 ? `Error ${statusCode}` : 'Error'}</AlertTitle>
                         <AlertDescription>
-                            {serverError && <div className="mb-2">{serverError}</div>}
                             {errors && (
                                 <ul className="list-disc pl-5 space-y-1">
-                                    {Object.entries(errors).map(([field, msgs]) =>
-                                        msgs.map((msg, i) => <li key={`${field}-${i}`}>{field}: {msg}</li>)
+                                    {Object.entries(errors).flatMap(([field, msgs]) =>
+                                        msgs.map((msg, i) => (
+                                            <li key={`${field}-${i}`}>
+                                                {field}: {msg}
+                                            </li>
+                                        )),
                                     )}
                                 </ul>
                             )}
@@ -154,8 +174,8 @@ export default function NamespacePage({ namespaces, errors, serverError, statusC
                         <Button className="ml-2" onClick={handleSearch}>
                             Search
                         </Button>
-                        <Button className="ml-2" onClick={handleReset}>
-                             Reset
+                        <Button className="ml-2" variant="secondary" onClick={handleReset}>
+                            Reset
                         </Button>
                     </div>
                 </FilterCard>
@@ -168,7 +188,7 @@ export default function NamespacePage({ namespaces, errors, serverError, statusC
                     </div>
 
                     <div className="overflow-x-auto">
-                        <DataTable columns={columns} data={namespaces} />
+                        <DataTable columns={columns} data={rows} />
                     </div>
 
                 </div>
