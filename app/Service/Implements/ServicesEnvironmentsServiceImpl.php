@@ -53,15 +53,23 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
         return $row;
     }
 
-    public function getAll(PaginationRequest $data): LengthAwarePaginator|Collection
+    public function getAll(PaginationRequest | null $data, bool $onlySvcEnv = false): LengthAwarePaginator|Collection
     {
         try {
             $this->checkPermission('read');
-            $value = $data->validated();
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+            }
 
-            $query = $this->model->newQuery()->with(['service.namespace','environment','configurations.channel']);
+            $query = $this->model->newQuery();
+
+            if (!$onlySvcEnv) {
+                $query->with(['service.namespace','environment','configurations.channel']);
+            }
 
             if ($page > 0 && $size > 0) return $this->applyPagination($query, $page, $size);
             return $query->get();
@@ -69,7 +77,7 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
         catch (\Throwable $e) { throw new InternalServiceException('Failed to load services_environments. Please try again later.'); }
     }
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator|Collection
+    public function search(SearchPaginationRequest | null $data, bool $onlySvcEnv = false): LengthAwarePaginator|Collection
     {
         try {
             $this->checkPermission('read');
