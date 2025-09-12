@@ -39,9 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Channel
     Route::get('channels/search', [ChannelController::class, 'search'])->name('channels.search');
     Route::resource('channels', ChannelController::class);
-    Route::get('channel', function () {
-        return Inertia::render('channel/index');
-    })->name('channel');
+
 
     // Service Environment
     Route::get('service-environment', function () {

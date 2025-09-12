@@ -38,13 +38,9 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(\Illuminate\Foundation\Inspiring::quotes()->random())->explode('-');
 
-        // Ambil user (bisa null saat belum login)
         $user = $request->user();
 
-        // Kalau sudah login, eager-load role + permissions
         if ($user) {
-            // pastikan relasi di model User: belongsTo(Role::class, 'role_id')
-            // dan di Role: hasMany(Permission::class) atau belongsToMany sesuai skema kamu
             $user->load([
                 'role:id,name,description',
                 'role.permissions:id,resource_type,action,description',

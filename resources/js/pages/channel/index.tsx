@@ -1,13 +1,13 @@
     import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
-import { channels } from '@/routes';
+import channels from '@/routes/channels';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Channels',
-        href: channels().url,
+        href: channels.index().url,
     },
 ];
 
