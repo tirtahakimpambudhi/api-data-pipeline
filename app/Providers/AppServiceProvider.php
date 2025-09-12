@@ -5,10 +5,12 @@ namespace App\Providers;
 use App\Service\Contracts\ChannelsService;
 use App\Service\Contracts\EnvironmentsService;
 use App\Service\Contracts\NamespacesService;
+use App\Service\Contracts\ServicesEnvironmentsService;
 use App\Service\Contracts\ServicesService;
 use App\Service\Implements\ChannelsServiceImpl;
 use App\Service\Implements\EnvironmentsServiceImpl;
 use App\Service\Implements\NamespacesServiceImpl;
+use App\Service\Implements\ServicesEnvironmentsServiceImpl;
 use App\Service\Implements\ServicesServiceImpl;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,6 +39,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             ServicesService::class,
             ServicesServiceImpl::class
+        );
+
+        $this->app->bind(
+            ServicesEnvironmentsService::class,
+            ServicesEnvironmentsServiceImpl::class
         );
     }
 
