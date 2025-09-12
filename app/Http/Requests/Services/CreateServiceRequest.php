@@ -41,12 +41,4 @@ class CreateServiceRequest extends FormRequest
             'namespace_id.exists' => 'Namespace id does not exist!',
         ];
     }
-
-    /**
-     * @throws ValidationServiceException
-     */
-    public function failedValidation(Validator $validator)
-    {
-        throw new ValidationServiceException(['errors' => $validator->errors()->toArray()]);
-    }
 }
