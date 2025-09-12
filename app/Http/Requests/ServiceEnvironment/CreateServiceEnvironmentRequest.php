@@ -36,9 +36,4 @@ class CreateServiceEnvironmentRequest extends FormRequest
             'environment_id.unique'   => 'The pair service_id + environment_id already exists!',
         ];
     }
-
-    public function failedValidation(Validator $validator)
-    {
-        throw new ValidationServiceException(['errors' => $validator->errors()->toArray()]);
-    }
 }
