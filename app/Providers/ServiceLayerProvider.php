@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\ChannelController;
+use App\Http\Controllers\EnvironmentController;
+use App\Http\Controllers\NamespaceController;
 use App\Models\Channels;
 use App\Models\Configurations;
 use App\Models\Environments;
@@ -126,5 +129,8 @@ class ServiceLayerProvider extends ServiceProvider implements DeferrableProvider
         //
     }
 
-
+    public function provides(): array
+    {
+        return [NamespacesService::class, NamespaceController::class, EnvironmentsService::class, EnvironmentController::class, ChannelsService::class, ChannelController::class];
+    }
 }
