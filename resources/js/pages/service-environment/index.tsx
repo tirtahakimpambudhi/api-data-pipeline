@@ -1,13 +1,13 @@
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
-import { serviceEnvironment } from '@/routes';
+import serviceEnvironmentRoute from '@/routes/service-environments';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Service Environmets',
-        href: serviceEnvironment().url,
+        href: serviceEnvironmentRoute.index().url,
     },
 ];
 

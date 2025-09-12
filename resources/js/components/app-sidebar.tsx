@@ -3,10 +3,11 @@ import {
   Sidebar, SidebarContent, SidebarFooter, SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel
 } from '@/components/ui/sidebar';
-import { configuration, dashboard, serviceEnvironment, settings } from '@/routes';
+import { configuration, dashboard, settings } from '@/routes';
 import channels from '@/routes/channels';
 import environments from '@/routes/environments';
 import namespaces from '@/routes/namespaces';
+import serviceEnvironments from '@/routes/service-environments';
 import services from '@/routes/services';
 import { SharedData, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -47,7 +48,7 @@ export function AppSidebar() {
     { title: 'Service', href: services.index.url(), icon: ServerCog },
     { title: 'Environment', href: environments.index.url(), icon: Network },
     { title: 'Channel', href: channels.index.url(), icon: Radio },
-    { title: 'Service Environment', href: serviceEnvironment.url(), icon: Wrench },
+    { title: 'Service Environment', href: serviceEnvironments.index.url(), icon: Wrench },
   ] : [];
 
   const [open, setOpen] = React.useState(true);

@@ -42,9 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Service Environment
     Route::get('service-environments/search', [ServiceEnvironmentController::class, 'search'])->name('service-environments.search');
     Route::resource('service-environments', ServiceEnvironmentController::class);
-    Route::get('service-environment', function () {
-        return Inertia::render('service-environment/index');
-    })->name('service-environment');
+
 
     // Configuration
     Route::get('configuration', function () {

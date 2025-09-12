@@ -8,6 +8,8 @@ use App\Http\Requests\General\PaginationRequest; // <-- KUNCI PENTING
 use App\Http\Requests\ServiceEnvironment\CreateServiceEnvironmentRequest;
 use App\Http\Requests\ServiceEnvironment\UpdateServiceEnvironmentRequest;
 use App\Http\Requests\General\SearchPaginationRequest;
+use App\Models\Environments;
+use App\Models\Services;
 use App\Service\Contracts\EnvironmentsService;
 use App\Service\Contracts\ServicesEnvironmentsService;
 use App\Service\Contracts\ServicesService;
@@ -36,14 +38,11 @@ class ServiceEnvironmentController extends Controller
     public function index(PaginationRequest $request): Response
     {
         $serviceEnvironments = $this->serviceEnvironmentsService->getAll($request);
-        // Menggunakan Service Layer (cara yang benar dan aman)
-        $services = $this->servicesService->getAll(new PaginationRequest());
-        $environments = $this->environmentsService->getAll(new PaginationRequest());
 
         return Inertia::render('service-environment/index', [
             'serviceEnvironments' => $serviceEnvironments,
-            'services' => $services,
-            'environments' => $environments,
+            'services' => Services::all(),
+            'environments' => Environments::all(),
             'filters' => $request->all(['page', 'size']),
         ]);
     }
@@ -52,13 +51,11 @@ class ServiceEnvironmentController extends Controller
     public function search(SearchPaginationRequest $request): Response
     {
         $serviceEnvironments = $this->serviceEnvironmentsService->search($request);
-        $services = $this->servicesService->getAll(new PaginationRequest());
-        $environments = $this->environmentsService->getAll(new PaginationRequest());
 
         return Inertia::render('service-environment/index', [
             'serviceEnvironments' => $serviceEnvironments,
-            'services' => $services,
-            'environments' => $environments,
+            'services' => Services::all(),
+            'environments' => Services::all(),
             'filters' => $request->all(['search', 'page', 'size', 'service_id', 'environment_id']),
         ]);
     }
@@ -66,13 +63,10 @@ class ServiceEnvironmentController extends Controller
 
     public function create(): Response
     {
-        // Menggunakan Service Layer (cara yang benar dan aman)
-        $services = $this->servicesService->getAll(new PaginationRequest());
-        $environments = $this->environmentsService->getAll(new PaginationRequest());
 
         return Inertia::render('service-environment/create', [
-            'services' => $services,
-            'environments' => $environments,
+            'services' => Services::all(),
+            'environments' => Environments::all(),
         ]);
     }
     
@@ -95,14 +89,11 @@ class ServiceEnvironmentController extends Controller
     {
         try {
             $serviceEnvironment = $this->serviceEnvironmentsService->getById($id);
-            // Menggunakan Service Layer (cara yang benar dan aman)
-            $services = $this->servicesService->getAll(new PaginationRequest());
-            $environments = $this->environmentsService->getAll(new PaginationRequest());
 
             return Inertia::render('service-environment/edit', [
                 'serviceEnvironment' => $serviceEnvironment,
-                'services' => $services,
-                'environments' => $environments,
+                'services' => Services::all(),
+                'environments' => Environments::all(),
             ]);
         } catch (NotFoundServiceException) {
             abort(404);
