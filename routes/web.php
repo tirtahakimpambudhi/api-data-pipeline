@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\EnvironmentController;
 use App\Http\Controllers\NamespaceController;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('environments', EnvironmentController::class);
 
     // Channel
+    Route::get('channels/search', [ChannelController::class, 'search'])->name('channels.search');
+    Route::resource('channels', ChannelController::class);
     Route::get('channel', function () {
         return Inertia::render('channel/index');
     })->name('channel');
