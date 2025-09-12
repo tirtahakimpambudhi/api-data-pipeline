@@ -73,18 +73,26 @@ class ServicesServiceImpl implements ServicesService
     }
 
 
-    public function getAll(PaginationRequest $data): LengthAwarePaginator|Collection
+    public function getAll(PaginationRequest | null $data, bool $onlyService = false): LengthAwarePaginator|Collection
     {
         try {
             $this->checkPermission("read");
 
             $this->logger->info("Start of getAll services (service layer)");
 
-            $value = $data->validated();
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+            }
 
-            $query = $this->model->newQuery()->with(['configurations', 'namespace', 'servicesEnvironments', 'environments']);
+            $query = $this->model->newQuery();
+
+            if (!$onlyService) {
+                $query->with(['configurations', 'namespace', 'servicesEnvironments', 'environments']);
+            }
 
             if ($page > 0 && $size > 0) {
                 return $this->applyPagination(query: $query, page: $page, size: $size);
@@ -131,19 +139,29 @@ class ServicesServiceImpl implements ServicesService
         }
     }
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator|Collection
+    public function search(SearchPaginationRequest | null $data, bool $onlyService = false): LengthAwarePaginator|Collection
     {
         try {
             $this->checkPermission("read");
 
             $this->logger->info("Start of search services (service layer)");
 
-            $value       = $data->validated();
-            $searchValue = trim((string)($value['search'] ?? ''));
-            $page        = (int)($value['page'] ?? 0);
-            $size        = (int)($value['size'] ?? 0);
+            $searchValue = '';
+            $page = 0;
+            $size = 0;
 
-            $query = $this->model->newQuery()->with(['configurations', 'namespace', 'servicesEnvironments', 'environments']);
+            if ($data !== null) {
+                $value       = $data->validated();
+                $searchValue = trim((string)($value['search'] ?? ''));
+                $page        = (int)($value['page'] ?? 0);
+                $size        = (int)($value['size'] ?? 0);
+            }
+
+            $query = $this->model->newQuery();
+
+            if (!$onlyService) {
+                $query->with(['configurations', 'namespace', 'servicesEnvironments', 'environments']);
+            }
 
             if ($searchValue !== '') {
                 $query->whereLike('name', "%{$searchValue}%");
