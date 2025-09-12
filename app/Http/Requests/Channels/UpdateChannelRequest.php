@@ -26,9 +26,4 @@ class UpdateChannelRequest extends FormRequest
             'name.unique' => 'Name already exists!',
         ];
     }
-
-    public function failedValidation(Validator $validator)
-    {
-        throw new ValidationServiceException(['errors' => $validator->errors()->toArray()]);
-    }
 }
