@@ -4,28 +4,44 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppLayout from '@/layouts/app-layout';
 import serviceRoutes from '@/routes/services';
 import { Namespace, PaginatedResponse, Service } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import React, { useMemo, useRef } from 'react';
+import { toast, Toaster } from 'sonner';
+import { useState, useEffect} from 'react';
 
 function isPaginated<T>(val: unknown): val is PaginatedResponse<T> {
   return !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any);
 }
 
+
+type Props = {
+    service: Service;
+    namespaces: PaginatedResponse<Namespace> | Namespace[];
+    flash?: {
+        message ?: string;
+        error ?: string;
+        success ?: string;
+    }
+};
+
+
 export default function ServiceEditPage({
   service,
   namespaces,
-}: {
-  service: Service;
-  namespaces: PaginatedResponse<Namespace> | Namespace[];
-}) {
+}: Props) {
   const nsOptions = useMemo(() => (isPaginated<Namespace>(namespaces) ? namespaces.data : namespaces), [namespaces]);
+    const {props} = usePage<Props>();
 
+    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
+    const [successFlash, setSuccessFlash] = useState<string | undefined>(
+        props.flash?.success ?? props.flash?.message
+    );
   const initial = useRef({
     name: service.name ?? '',
     namespace_id: service.namespace?.id ?? '',
   });
 
-  const { data, setData, put, processing, errors, wasSuccessful } = useForm({
+  const { data, setData, put, processing, errors, wasSuccessful, clearErrors } = useForm({
     name: initial.current.name,
     namespace_id: initial.current.namespace_id as string | number | '',
   });
@@ -40,7 +56,18 @@ export default function ServiceEditPage({
   const handleReset = () => {
     setData('name', initial.current.name);
     setData('namespace_id', initial.current.namespace_id);
+    clearErrors();
+    setErrorFlash(undefined);
+    setSuccessFlash(undefined);
   };
+
+    useEffect(() => {
+        if (errorFlash) toast.error(errorFlash);
+    }, [errorFlash]);
+
+    useEffect(() => {
+        if (successFlash) toast.info(successFlash);
+    }, [successFlash]);
 
   const isDirty =
     String(data.name) !== String(initial.current.name) ||
@@ -51,6 +78,7 @@ export default function ServiceEditPage({
   return (
     <AppLayout>
       <Head title="Edit Service" />
+        <Toaster richColors theme="system" position="top-right" />
       <div className="p-4 lg:p-6">
         <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
           <h1 className="text-xl font-semibold">Edit Service</h1>
