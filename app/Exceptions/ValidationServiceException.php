@@ -8,7 +8,7 @@ class ValidationServiceException extends AppServiceException
         protected array $errors,
         string $message = 'Failed to validate request.',
     ) {
-        parent::__construct($message);
+        parent::__construct($message, 422);
     }
 
     public function toMessageBag(): MessageBag
