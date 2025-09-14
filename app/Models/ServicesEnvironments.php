@@ -23,22 +23,24 @@ class ServicesEnvironments extends Model
         'environment_id',
     ];
 
+    protected $appends = ['name'];
+
     protected function name(): Attribute
     {
         return Attribute::get(function (): string {
-            if (!$this->service_id || !$this->environment_id) {
-                return '';
+
+            if (
+                $this->relationLoaded('service') &&
+                $this->service &&
+                $this->service->relationLoaded('namespace') &&
+                $this->service->namespace &&
+                $this->relationLoaded('environment') &&
+                $this->environment
+            ) {
+                return "{$this->service->namespace->name}.{$this->service->name}-{$this->environment->name}";
             }
 
-             $this->loadMissing(['service.namespace', 'service.environments']);
-
-            $svc = $this->service;
-            $ns  = $svc?->namespace;
-            $env = $svc?->environments?->firstWhere('id', $this->environment_id);
-
-            return ($ns && $svc && $env)
-                ? "{$ns->name}.{$svc->name}-{$env->name}"
-                : '';
+            return '';
         });
     }
 
