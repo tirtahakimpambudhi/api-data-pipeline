@@ -8,9 +8,12 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import AppLayout from '@/layouts/app-layout';
 import namespaceRoutes from '@/routes/namespaces';
 import { type BreadcrumbItem, type Namespace } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage  } from '@inertiajs/react';
+import { destroy as destroyNamespace } from '@/routes/namespaces/index'
 import { MoreVertical } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import axios from 'axios'
+
 import { toast, Toaster } from 'sonner';
 
 type ErrorBag = Record<string, string[]>;
@@ -54,13 +57,15 @@ const formatDateTime = (iso?: string) => {
     }
 };
 
-// Type guards fleksibel
+
 const isArrayData = (val: unknown): val is Namespace[] => Array.isArray(val);
 
 const hasMeta = <T,>(val: unknown): val is MetaPaginated<T> =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     !!val && typeof val === 'object' && 'data' in (val as any) && 'meta' in (val as any);
 
 const isFlatPaginated = <T,>(val: unknown): val is FlatPaginated<T> =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any) && !('meta' in (val as any));
 
 export default function NamespacePage({
@@ -72,14 +77,15 @@ export default function NamespacePage({
                                       }: Props) {
     const { props } = usePage<Props>();
 
-    // Flash -> state lokal agar bisa direset dari UI (fitur local)
+
     const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
     const [successFlash, setSuccessFlash] = useState<string | undefined>(
         props.flash?.success ?? props.flash?.message
     );
 
-    // Inisialisasi state search/page/size
+
     const initialSearch =
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (filters as any)?.search ??
         (typeof window !== 'undefined'
             ? new URLSearchParams(window.location.search).get('search') || ''
@@ -96,12 +102,14 @@ export default function NamespacePage({
         : isFlatPaginated<Namespace>(namespaces)
             ? namespaces.per_page
             : 10;
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [search, setSearch] = useState<string>(String((filters as any)?.search ?? initialSearch));
     const [currentPage, setCurrentPage] = useState<number>(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Number((filters as any)?.page ?? derivedPage)
     );
     const [itemsPerPage, setItemsPerPage] = useState<number>(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Number((filters as any)?.size ?? derivedSize)
     );
 
@@ -139,7 +147,6 @@ export default function NamespacePage({
         ),
     ]);
 
-    // Data untuk tabel (gabung dua mode)
     const tableData: Namespace[] = useMemo(() => {
         if (hasMeta<Namespace>(namespaces)) return namespaces.data;
         if (isFlatPaginated<Namespace>(namespaces)) return namespaces.data;
@@ -160,6 +167,7 @@ export default function NamespacePage({
 
     // Actions
     const handleSearch = () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const params: Record<string, any> = { page: 1, size: itemsPerPage };
         if (search) params.search = search;
         router.get(search ? namespaceRoutes.search.url() : namespaceRoutes.index.url(), params, {
@@ -171,8 +179,9 @@ export default function NamespacePage({
 
     const handleReset = () => {
         setSearch('');
-        setErrorFlash(undefined);   // bersihkan flash error (fitur local)
-        setSuccessFlash(undefined); // bersihkan flash success (fitur local)
+        setErrorFlash(undefined);
+        setSuccessFlash(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const params: Record<string, any> = { page: 1, size: itemsPerPage };
         router.get(namespaceRoutes.index.url(), params, {
             preserveState: true,
@@ -185,20 +194,40 @@ export default function NamespacePage({
             description: 'This action cannot be undone.',
             action: {
                 label: 'Delete',
-                onClick: () => {
-                    router.delete(namespaceRoutes.destroy.url({ namespace: item.id }), {
-                        onSuccess: () => toast.success(`Namespace "${item.name}" has been deleted.`),
-                        onError: () => toast.error('Failed to delete the namespace.'),
-                    });
+                onClick: async () => {
+                    try {
+                        const req = destroyNamespace(item.id)
+                        await axios({
+                            url: req.url,
+                            method: req.method,
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        })
+
+                        toast.success(`Namespace "${item.name}" has been deleted.`)
+
+                        router.reload({ only: ['namespaces'] })
+                    } catch (err: any) {
+                        const status = err?.response?.status
+                        const msg = err?.response?.data?.message
+                        console.log(err)
+                        if (status >= 400 && status < 500) {
+                            toast.error(msg)
+                        } else if (status >= 500) {
+                            toast.error(msg || 'Internal server error while deleting.')
+                        } else {
+                            toast.error('Failed to delete the namespace.')
+                        }
+                    }
                 },
             },
             cancel: { label: 'Cancel', onClick: () => {} },
             duration: 8000,
-        });
-    }, []);
+        })
+    }, [])
 
     const onPageChange = (page: number) => {
         setCurrentPage(page);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const params: Record<string, any> = { page, size: itemsPerPage };
         if (search) params.search = search;
         router.get(search ? namespaceRoutes.search.url() : namespaceRoutes.index.url(), params, {
@@ -209,6 +238,7 @@ export default function NamespacePage({
 
     const onChangePerPage = (size: number) => {
         setItemsPerPage(size);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const params: Record<string, any> = { page: 1, size };
         if (search) params.search = search;
         router.get(search ? namespaceRoutes.search.url() : namespaceRoutes.index.url(), params, {
@@ -219,10 +249,13 @@ export default function NamespacePage({
 
     const columns: ColumnDefinition<Namespace>[] = useMemo(
         () => [
-            { header: 'ID', align: 'left', render: (item) => item.id },
-            { header: 'Name', align: 'left', render: (item) => item.name },
-            { header: 'Created At', align: 'left', render: (item) => formatDateTime(item.created_at) },
-            { header: 'Updated At', align: 'left', render: (item) => formatDateTime(item.updated_at) },
+            { header: 'No', align: 'left', render: (_item, index) => index+1 },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            { header: 'Name', align: 'left', render: (item, _) => item.name },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            { header: 'Created At', align: 'left', render: (item, _) => formatDateTime(item.created_at) },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            { header: 'Updated At', align: 'left', render: (item, _) => formatDateTime(item.updated_at) },
             {
                 header: 'Actions',
                 align: 'right',
@@ -257,7 +290,6 @@ export default function NamespacePage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Namespace" />
-            {/* Prioritaskan setting local untuk posisi Toaster */}
             <Toaster richColors position="top-right" />
 
             <div className="flex flex-col gap-4 p-4 lg:p-6">
