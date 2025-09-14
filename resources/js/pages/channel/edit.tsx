@@ -3,20 +3,30 @@ import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import channels from '@/routes/channels';
 import { Channel } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
-import React, { useRef } from 'react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import React, { useEffect, useRef, useState } from 'react';
+import { toast, Toaster } from 'sonner';
 
 type Props = {
     channel: Channel;
+    flash?: {
+        message ?: string;
+        error ?: string;
+        success ?: string;
+    }
 };
 
 export default function EditPage({ channel }: Props) {
     const initial = useRef({ name: channel.name });
 
-    const { data, setData, put, processing, errors, wasSuccessful } = useForm({
+    const { data, setData, put, processing, errors, wasSuccessful, clearErrors } = useForm({
         name: channel.name ?? '',
     });
-
+    const { props } = usePage<Props>();
+    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
+    const [successFlash, setSuccessFlash] = useState<string | undefined>(
+        props.flash?.success ?? props.flash?.message
+    );
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         put(channels.update.url({ channel: channel.id }), {
@@ -24,8 +34,19 @@ export default function EditPage({ channel }: Props) {
         });
     };
 
+    useEffect(() => {
+        if (errorFlash) toast.error(errorFlash);
+    }, [errorFlash]);
+
+    useEffect(() => {
+        if (successFlash) toast.info(successFlash);
+    }, [successFlash]);
+
     const handleReset = () => {
         setData('name', initial.current.name ?? '');
+        clearErrors()
+        setErrorFlash(undefined);
+        setSuccessFlash(undefined);
     };
 
     const isDirty = data.name !== initial.current.name;
@@ -34,6 +55,7 @@ export default function EditPage({ channel }: Props) {
     return (
         <AppLayout>
             <Head title="Edit channel" />
+            <Toaster richColors theme="system" position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-lg rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <h1 className="text-xl font-semibold">Edit channel</h1>
