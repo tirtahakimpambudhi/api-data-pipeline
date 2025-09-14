@@ -4,7 +4,7 @@ use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\EnvironmentController;
 use App\Http\Controllers\NamespaceController;
 use App\Http\Controllers\ServiceEnvironmentController;
-use App\Http\Controllers\ServiceServiceController;
+use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Models\Namespaces;
@@ -27,8 +27,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('namespaces.services.store');
 
     // Service
-    Route::get('services/search', [ServiceServiceController::class, 'search'])->name('services.search');
-    Route::resource('services', ServiceServiceController::class);
+    Route::get('services/search', [ServiceController::class, 'search'])->name('services.search');
+    Route::resource('services', ServiceController::class);
 
     // Environment
     Route::get('environments/search', [EnvironmentController::class, 'search'])->name('environments.search');
