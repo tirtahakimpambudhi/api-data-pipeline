@@ -10,8 +10,6 @@ use App\Exceptions\PermissionDeniedServiceException;
 use App\Exceptions\UnauthorizedServiceException;
 use App\Http\Requests\General\PaginationRequest;
 use App\Http\Requests\General\SearchPaginationRequest;
-use App\Http\Requests\Namespaces\CreateNamespaceRequest;
-use App\Http\Requests\Namespaces\UpdateNamespaceRequest;
 use App\Http\Requests\Services\CreateServiceRequest;
 use App\Http\Requests\Services\UpdateServiceRequest;
 use App\Models\Services;
