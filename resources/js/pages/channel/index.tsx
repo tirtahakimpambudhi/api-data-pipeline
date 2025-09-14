@@ -6,11 +6,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import channelRoutes from '@/routes/channels';
-import { type BreadcrumbItem, type Channel, type PaginatedResponse } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { type BreadcrumbItem, type Channel, Environment, type PaginatedResponse } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import environmentRoutes from '@/routes/environments';
+import axios from 'axios';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'channel', href: channelRoutes.index.url() },
@@ -25,16 +28,30 @@ const formatDateTime = (iso?: string) => {
   }
 };
 
+type Props = {
+    channels: PaginatedResponse<Channel> | Channel[];
+    filters?: { search?: string; page?: number; size?: number };
+    errors?: Record<string, string[]> | null;
+    flash?: {
+        message ?: string;
+        error ?: string;
+        success ?: string;
+    }
+}
+
 export default function channelPage({
   channels,
   filters,
-}: {
-  channels: PaginatedResponse<Channel> | Channel[];
-  filters?: { search?: string; page?: number; size?: number };
-}) {
+}: Props ) {
   const isPaginated = (val: unknown): val is PaginatedResponse<Channel> =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any);
-
+    const { props } = usePage<Props>();
+    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
+    const [successFlash, setSuccessFlash] = useState<string | undefined>(
+        props.flash?.success ?? props.flash?.message
+    );
+    const [errors, setErrors] = useState(props.errors);
   const initialSearch = (filters?.search ?? new URLSearchParams(window.location.search).get('search') ?? '') as string;
   const initialPage = (filters?.page ?? (isPaginated(channels) ? channels.current_page : 1)) as number;
   const initialSize = (filters?.size ?? (isPaginated(channels) ? channels.per_page : 10)) as number;
@@ -66,6 +83,7 @@ export default function channelPage({
   const totalItems = isPaginated(channels) ? channels.total : (channels as Channel[]).length;
 
   const handleSearch = () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page: 1, size: itemsPerPage };
     if (search) params.search = search;
     router.get(search ? channelRoutes.search.url() : channelRoutes.index.url(), params, {
@@ -74,9 +92,19 @@ export default function channelPage({
       onError: () => toast.error('Failed load data.'),
     });
   };
+    useEffect(() => {
+        if (errorFlash) toast.error(errorFlash);
+    }, [errorFlash]);
 
+    useEffect(() => {
+        if (successFlash) toast.info(successFlash);
+    }, [successFlash]);
   const handleReset = () => {
     setSearch('');
+    setErrorFlash(undefined);
+    setSuccessFlash(undefined);
+    setErrors({});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page: 1, size: itemsPerPage };
     router.get(channelRoutes.index.url(), params, {
       preserveState: true,
@@ -84,25 +112,46 @@ export default function channelPage({
     });
   };
 
-  const handleDelete = useCallback((item: Channel) => {
-    toast.warning(`Delete "${item.name}"?`, {
-      description: 'This action cannot be undone.',
-      action: {
-        label: 'Delete',
-        onClick: () => {
-          router.delete(channelRoutes.destroy.url({ channel: item.id }), {
-            onSuccess: () => toast.success(`channel "${item.name}" deleted.`),
-            onError: () => toast.error('Failed delete channel.'),
-          });
-        },
-      },
-      cancel: { label: 'Cancel', onClick: () => {} },
-      duration: 8000,
-    });
-  }, []);
+
+    const handleDelete = useCallback((item: Channel) => {
+        toast.warning(`Are you sure you want to delete "${item.name}"?`, {
+            description: 'This action cannot be undone.',
+            action: {
+                label: 'Delete',
+                onClick: async () => {
+                    try {
+                        const req = channelRoutes.destroy(item.id)
+                        await axios({
+                            url: req.url,
+                            method: req.method,
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        })
+
+                        toast.success(`Channels "${item.name}" has been deleted.`)
+
+                        router.reload({ only: ['channels'] })
+                    } catch (err: any) {
+                        const status = err?.response?.status
+                        const msg = err?.response?.data?.message
+                        console.log(err)
+                        if (status >= 400 && status < 500) {
+                            toast.error(msg)
+                        } else if (status >= 500) {
+                            toast.error(msg || 'Internal server error while deleting.')
+                        } else {
+                            toast.error('Failed to delete the channel.')
+                        }
+                    }
+                },
+            },
+            cancel: { label: 'Cancel', onClick: () => {} },
+            duration: 8000,
+        })
+    }, [])
 
   const onPageChange = (page: number) => {
     setCurrentPage(page);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page, size: itemsPerPage };
     if (search) params.search = search;
     router.get(search ? channelRoutes.search.url() : channelRoutes.index.url(), params, {
@@ -113,7 +162,7 @@ export default function channelPage({
 
   const columns: ColumnDefinition<Channel>[] = useMemo(
     () => [
-      { header: 'ID', align: 'left', render: (item) => item.id },
+      { header: 'No', align: 'left', render: (item, index) => index+1 },
       { header: 'Name', align: 'left', render: (item) => item.name },
       { header: 'Created At', align: 'left', render: (item) => formatDateTime(item.created_at) },
       { header: 'Updated At', align: 'left', render: (item) => formatDateTime(item.updated_at) },
@@ -151,9 +200,25 @@ export default function channelPage({
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="channel" />
-      <Toaster richColors theme="system" position="top-center" />
+      <Toaster richColors theme="system" position="top-right" />
 
       <div className="flex flex-col gap-4 p-4 lg:p-6">
+          {(errors && Object.keys(errors).length > 0) && (
+              <Alert variant="destructive" className="mx-auto w-full max-w-3xl">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>
+                      <ul className="list-disc pl-5 space-y-1">
+                          {Object.entries(errors).flatMap(([field, messages]) =>
+                              messages.map((msg :string, i :number) => (
+                                  <li key={`${field}-${i}`}>
+                                      {field}: {msg}
+                                  </li>
+                              ))
+                          )}
+                      </ul>
+                  </AlertDescription>
+              </Alert>
+          )}
         <FilterCard title="Filter channel" description="Filter channel by name" className="mx-auto w-full max-w-2xl">
           <div className="flex w-full items-center gap-2">
             <Input
@@ -190,6 +255,7 @@ export default function channelPage({
                 onChange={(e) => {
                   const size = Number(e.target.value);
                   setItemsPerPage(size);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const params: Record<string, any> = { page: 1, size };
                   if (search) params.search = search;
                   router.get(search ? channelRoutes.search.url() : channelRoutes.index.url(), params, {
