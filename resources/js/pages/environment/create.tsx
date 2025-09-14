@@ -2,14 +2,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import environments, { store } from '@/routes/environments';
-import { Head, Link, useForm } from '@inertiajs/react';
-import React from 'react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import React, { useEffect, useState } from 'react';
+import { toast, Toaster } from 'sonner';
+
+type Props = {
+    flash?: {
+        message ?: string;
+        error ?: string;
+        success ?: string;
+    }
+};
 
 export default function CreatePage() {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         name: '',
     });
-
+    const {props} = usePage<Props>();
+    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
+    const [successFlash, setSuccessFlash] = useState<string | undefined>(
+        props.flash?.success ?? props.flash?.message
+    );
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post(store.url(), { preserveScroll: true });
@@ -17,14 +30,24 @@ export default function CreatePage() {
 
     const handleReset = () => {
         reset('name');
+        clearErrors();
+        setSuccessFlash(undefined);
+        setErrorFlash(undefined);
     };
 
     const isDirty = data.name !== '';
     const isDisabled = processing || !data.name.trim();
+    useEffect(() => {
+        if (errorFlash) toast.error(errorFlash);
+    }, [errorFlash]);
 
+    useEffect(() => {
+        if (successFlash) toast.info(successFlash);
+    }, [successFlash]);
     return (
         <AppLayout>
             <Head title="Create Namespace" />
+            <Toaster richColors theme="system" position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-lg rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">
