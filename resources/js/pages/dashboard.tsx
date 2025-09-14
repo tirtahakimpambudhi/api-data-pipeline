@@ -2,7 +2,9 @@ import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
+import { toast, Toaster } from 'sonner';
+import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -11,10 +13,33 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+type Props = {
+    flash?: {
+        message ?: string;
+        error ?: string;
+        success ?: string;
+    }
+}
+
 export default function Dashboard() {
+    const { props } = usePage<Props>();
+
+    const [errorFlash] = useState<string | undefined>(props.flash?.error);
+    const [successFlash] = useState<string | undefined>(
+        props.flash?.success ?? props.flash?.message
+    );
+
+    useEffect(() => {
+        if (errorFlash) toast.error(errorFlash);
+    }, [errorFlash]);
+
+    useEffect(() => {
+        if (successFlash) toast.info(successFlash);
+    }, [successFlash]);
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
+            <Toaster richColors theme="system" position="top-right" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                     <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
