@@ -21,17 +21,14 @@ class Services extends Model
         'namespace_id',
     ];
 
+    protected $appends = ['full_name'];
+
     protected function fullName(): Attribute
     {
-        return Attribute::get(function ():string {
-            if (!$this->id || !$this->namespace_id) {
+        return Attribute::get(function (): string {
+            if (!$this->relationLoaded('namespace') || !$this->namespace) {
                 return '';
             }
-
-            $this->loadMissing([
-                'namespace',
-            ]);
-
             return "{$this->namespace->name}.{$this->name}";
         });
     }
