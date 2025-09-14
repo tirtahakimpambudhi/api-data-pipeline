@@ -98,7 +98,6 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
                 $query->where('environment_id', (int)$envId);
             }
 
-            // Pencarian dengan join relasi (nama namespace/service/environment)
             if ($term !== '') {
                 $query->where(function($q) use ($term) {
                     $q->whereHas('service', fn($sq) => $sq->whereLike('name', "%{$term}%"))
