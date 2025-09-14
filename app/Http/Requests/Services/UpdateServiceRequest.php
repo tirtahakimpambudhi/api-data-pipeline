@@ -5,6 +5,7 @@ namespace App\Http\Requests\Services;
 use App\Exceptions\ValidationServiceException;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateServiceRequest extends FormRequest
 {
@@ -24,7 +25,15 @@ class UpdateServiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'max:255|string|unique:services',
+            'name' => [
+                'max:255',
+                'string',
+                Rule::unique('services')
+                    ->ignore($this->service)
+                    ->where(function ($query) {
+                        return $query->where('namespace_id', $this->namespace_id);
+                    }),
+            ],
             'namespace_id' => 'min:0|numeric|exists:namespaces,id',
         ];
     }
