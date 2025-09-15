@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import environmentRoutes from '@/routes/environments';
-import { Environment, type BreadcrumbItem, type PaginatedResponse, type Namespace } from '@/types';
+import { Environment, type BreadcrumbItem, type PaginatedResponse } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -14,6 +14,7 @@ import { toast, Toaster } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import axios from 'axios';
 import { useFlash } from '@/hooks/use-flash';
+import { numberItemOnPage } from '@/lib/utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'environment', href: environmentRoutes.index.url() },
@@ -152,10 +153,17 @@ export default function environmentPage({
   };
 
 
-
+    const numberItem = numberItemOnPage(
+        isPaginated(environments)
+            ? environments.current_page
+            : currentPage,
+        isPaginated(environments)
+            ? environments.per_page
+            : itemsPerPage,
+    );
   const columns: ColumnDefinition<Environment>[] = useMemo(
     () => [
-      { header: 'No', align: 'left', render: (item, index) => index+1},
+      { header: 'No', align: 'left', render: (item, index) => numberItem(index)},
       { header: 'Name', align: 'left', render: (item) => item.name },
       { header: 'Created At', align: 'left', render: (item) => formatDateTime(item.created_at) },
       { header: 'Updated At', align: 'left', render: (item) => formatDateTime(item.updated_at) },
@@ -187,7 +195,7 @@ export default function environmentPage({
         ),
       },
     ],
-    [handleDelete]
+    [numberItem,handleDelete]
   );
 
   return (
