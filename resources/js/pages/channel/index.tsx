@@ -13,7 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'channel', href: channelRoutes.index.url() },
+  { title: 'Channel', href: channelRoutes.index.url() },
 ];
 
 const formatDateTime = (iso?: string) => {
@@ -150,11 +150,11 @@ export default function channelPage({
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="channel" />
+      <Head title="Channel" />
       <Toaster richColors theme="system" position="top-center" />
 
       <div className="flex flex-col gap-4 p-4 lg:p-6">
-        <FilterCard title="Filter channel" description="Filter channel by name" className="mx-auto w-full max-w-2xl">
+        <FilterCard title="Filter Channel" description="Filter channel by name" className="mx-auto w-full max-w-2xl">
           <div className="flex w-full items-center gap-2">
             <Input
               type="text"

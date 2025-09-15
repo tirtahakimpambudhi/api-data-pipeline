@@ -13,7 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'environment', href: environmentRoutes.index.url() },
+  { title: 'Environment', href: environmentRoutes.index.url() },
 ];
 
 const formatDateTime = (iso?: string) => {
@@ -150,11 +150,11 @@ export default function environmentPage({
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="environment" />
+      <Head title="Environment" />
       <Toaster richColors theme="system" position="top-center" />
 
       <div className="flex flex-col gap-4 p-4 lg:p-6">
-        <FilterCard title="Filter environment" description="Filter environment by name" className="mx-auto w-full max-w-2xl">
+        <FilterCard title="Filter Environment" description="Filter environment by name" className="mx-auto w-full max-w-2xl">
           <div className="flex w-full items-center gap-2">
             <Input
               type="text"
