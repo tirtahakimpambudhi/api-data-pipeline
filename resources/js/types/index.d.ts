@@ -73,6 +73,7 @@ export interface Environment {
 
 export interface ServiceEnvironment {
     id: number;
+    name: string;
     service_id: number;
     environment_id: number;
     service?: Service;
@@ -111,3 +112,10 @@ export type PaginatedResponse<T> = {
     per_page: number;
     total: number;
 };
+
+export type Filters = {
+  search?: string;
+  page?: number;
+  size?: number;
+};
+

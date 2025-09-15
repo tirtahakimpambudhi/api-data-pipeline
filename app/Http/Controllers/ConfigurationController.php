@@ -55,18 +55,23 @@ class ConfigurationController extends Controller
             'configurations' => $configurations,
             'serviceEnvironments' => ServicesEnvironments::all(),
             'channels' => Channels::all(),
-            'filters' => $request->all(['search', 'page', 'size', 'service_environment_id', 'channel_id']),
+            'filters' => $request->all(['search', 'page', 'size']),
         ]);
     }
 
-    public function create(): Response
+    public function create(): \Inertia\Response
     {
-
         return Inertia::render('configuration/create', [
-            'serviceEnvironments' => ServicesEnvironments::all(),
-            'channels' => Channels::all(),
+            'serviceEnvironments' => ServicesEnvironments::query()
+                ->with([
+                    'service:id,name',
+                    'environment:id,name',
+                ])
+                ->get(['id', 'service_id', 'environment_id']),
+            'channels' => Channels::all(['id', 'name']),
         ]);
     }
+
 
     public function store(CreateConfigurationRequest $request): RedirectResponse
     {
@@ -100,8 +105,13 @@ class ConfigurationController extends Controller
 
             return Inertia::render('configuration/edit', [
                 'configuration' => $configuration,
-                'serviceEnvironments' => ServicesEnvironments::all(),
-                'channels' => Channels::all(),
+                'serviceEnvironments' => ServicesEnvironments::query()
+                    ->with([
+                        'service:id,name',
+                        'environment:id,name',
+                    ])
+                    ->get(['id', 'service_id', 'environment_id']),
+                'channels' => Channels::all(['id', 'name']),
             ]);
         } catch (NotFoundServiceException) {
             abort(404);
