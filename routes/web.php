@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ChannelController;
+use App\Http\Controllers\ConfigurationController;
 use App\Http\Controllers\EnvironmentController;
 use App\Http\Controllers\NamespaceController;
 use App\Http\Controllers\ServiceEnvironmentController;
@@ -45,9 +46,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // Configuration
-    Route::get('configuration', function () {
-        return Inertia::render('configuration/index');
-    })->name('configuration');
+    Route::get('configurations/search', [ConfigurationController::class, 'search'])->name('configurations.search');
+    Route::resource('configurations', ConfigurationController::class);
+
 
     // Settting
     Route::get('settings', function () {

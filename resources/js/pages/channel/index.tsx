@@ -17,7 +17,7 @@ import axios from 'axios';
 import { useFlash } from '@/hooks/use-flash';
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'channel', href: channelRoutes.index.url() },
+  { title: 'Channel', href: channelRoutes.index.url() },
 ];
 
 const formatDateTime = (iso?: string) => {
@@ -194,22 +194,6 @@ export default function channelPage({
       <Toaster richColors theme="system" position="top-right" />
 
       <div className="flex flex-col gap-4 p-4 lg:p-6">
-          {(errors && Object.keys(errors).length > 0) && (
-              <Alert variant="destructive" className="mx-auto w-full max-w-3xl">
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>
-                      <ul className="list-disc pl-5 space-y-1">
-                          {Object.entries(errors).flatMap(([field, messages]) =>
-                              messages.map((msg :string, i :number) => (
-                                  <li key={`${field}-${i}`}>
-                                      {field}: {msg}
-                                  </li>
-                              ))
-                          )}
-                      </ul>
-                  </AlertDescription>
-              </Alert>
-          )}
         <FilterCard title="Filter channel" description="Filter channel by name" className="mx-auto w-full max-w-2xl">
           <div className="flex w-full items-center gap-2">
             <Input

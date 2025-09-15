@@ -104,7 +104,6 @@ export default function environmentPage({
 
   };
 
-
     const handleDelete = useCallback((item: Environment) => {
         toast.warning(`Are you sure you want to delete "${item.name}"?`, {
             description: 'This action cannot be undone.',

@@ -3,8 +3,9 @@ import {
   Sidebar, SidebarContent, SidebarFooter, SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel
 } from '@/components/ui/sidebar';
-import { configuration, dashboard, settings } from '@/routes';
+import {  dashboard, settings } from '@/routes';
 import channels from '@/routes/channels';
+import configurations from '@/routes/configurations';
 import environments from '@/routes/environments';
 import namespaces from '@/routes/namespaces';
 import serviceEnvironments from '@/routes/service-environments';
@@ -38,7 +39,7 @@ export function AppSidebar() {
       : []),
     {
       title: 'Configuration',
-      href: configuration.url(),
+      href: configurations.index.url(),
       icon: Cog,
     },
   ];

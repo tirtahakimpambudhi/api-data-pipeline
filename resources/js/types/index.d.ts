@@ -73,10 +73,13 @@ export interface Environment {
 
 export interface ServiceEnvironment {
     id: number;
+    name: string;
     service_id: number;
     environment_id: number;
     service?: Service;
     environment?: Environment;
+    created_at: string;
+    updated_at?: string;
 }
 
 export interface Configuration {
@@ -85,6 +88,8 @@ export interface Configuration {
     channel_id: number;
     service_environment?: ServiceEnvironment;
     channel?: Channel;
+    created_at: string;
+    updated_at?: string;
 }
 
 export interface Role {
@@ -107,3 +112,10 @@ export type PaginatedResponse<T> = {
     per_page: number;
     total: number;
 };
+
+export type Filters = {
+  search?: string;
+  page?: number;
+  size?: number;
+};
+
