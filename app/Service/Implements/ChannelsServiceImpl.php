@@ -2,6 +2,8 @@
 
 namespace App\Service\Implements;
 
+use App\Constants\ActionsTypes;
+use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\InternalServiceException;
@@ -41,7 +43,7 @@ class ChannelsServiceImpl implements ChannelsService
     {
         $user = $this->guard->user();
         if (!$user) throw new UnauthorizedServiceException("User not authenticated, must be logged in.");
-        if (!$user->hasPermission('channels', $action)) {
+        if (!$user->hasPermission(ResourcesTypes::CHANNELS, $action)) {
             throw new PermissionDeniedServiceException("User does not have permission to {$action} channels.");
         }
     }
@@ -56,7 +58,7 @@ class ChannelsServiceImpl implements ChannelsService
     public function getAll(PaginationRequest | null $data, bool $onlyChannel = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission('read');
+            $this->checkPermission(ActionsTypes::READ);
             $value = $data->validated();
             $page  = (int)($value['page'] ?? 0);
             $size  = (int)($value['size'] ?? 0);
@@ -72,7 +74,7 @@ class ChannelsServiceImpl implements ChannelsService
     public function search(SearchPaginationRequest | null $data, bool $onlyChannel = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission('read');
+            $this->checkPermission(ActionsTypes::READ);
             $value = $data->validated();
             $term  = trim((string)($value['search'] ?? ''));
             $page  = (int)($value['page'] ?? 0);
@@ -90,7 +92,7 @@ class ChannelsServiceImpl implements ChannelsService
     public function create(CreateChannelRequest $data): Collection
     {
         try {
-            $this->checkPermission('create');
+            $this->checkPermission(ActionsTypes::CREATE);
             $value = $data->validated();
             $row   = $this->model->newQuery()->create(['name' => (string)$value['name']]);
             return collect($row);
@@ -108,7 +110,7 @@ class ChannelsServiceImpl implements ChannelsService
     public function update(int $id, UpdateChannelRequest $data): Collection
     {
         try {
-            $this->checkPermission('update');
+            $this->checkPermission(ActionsTypes::UPDATE);
             $row = $this->getOrFail($id);
 
             $value = $data->validated();
@@ -134,7 +136,7 @@ class ChannelsServiceImpl implements ChannelsService
     public function delete(int $id): Collection
     {
         try {
-            $this->checkPermission('delete');
+            $this->checkPermission(ActionsTypes::DELETE);
             $row = $this->getOrFail($id);
             $row->delete();
             return collect(['id'=>$id, 'deleted'=>true]);
@@ -149,7 +151,7 @@ class ChannelsServiceImpl implements ChannelsService
     public function getById(int $id): Collection
     {
         try {
-            $this->checkPermission('read');
+            $this->checkPermission(ActionsTypes::READ);
             $row = $this->model->newQuery()
                 ->with(['servicesEnvironments.service','configurations.serviceEnvironment'])
                 ->find($id);
