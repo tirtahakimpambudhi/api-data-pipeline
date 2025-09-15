@@ -2,6 +2,8 @@
 
 namespace App\Service\Implements;
 
+use App\Constants\ActionsTypes;
+use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\InternalServiceException;
@@ -43,7 +45,7 @@ class NamespacesServiceImpl implements NamespacesService
     public function getAll(PaginationRequest | null $data, bool $onlyNamespace = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission("read");
+            $this->checkPermission(ActionsTypes::READ);
 
             $this->logger->info("Start of getAll namespaces (service layer)");
             $page = 0;
@@ -84,7 +86,7 @@ class NamespacesServiceImpl implements NamespacesService
     public function search(SearchPaginationRequest | null $data, bool $onlyNamespace = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission("read");
+            $this->checkPermission(ActionsTypes::READ);
 
             $this->logger->info("Start of search namespaces (service layer)");
             $page = 0;
@@ -139,7 +141,7 @@ class NamespacesServiceImpl implements NamespacesService
             throw new UnauthorizedServiceException("User not authenticated, must be logged in.");
         }
 
-        if (!$user->hasPermission('namespaces', $action)) {
+        if (!$user->hasPermission(ResourcesTypes::NAMESPACES, $action)) {
             $this->logger->warning("{$user->name} does not have permission to {$action} namespaces");
             throw new PermissionDeniedServiceException("User does not have permission to {$action} namespaces.");
         }
@@ -158,7 +160,7 @@ class NamespacesServiceImpl implements NamespacesService
     public function create(CreateNamespaceRequest $data): Collection
     {
         try {
-            $this->checkPermission("create");
+            $this->checkPermission(ActionsTypes::CREATE);
 
             $this->logger->info("Start of create namespace (service layer)");
 
@@ -195,7 +197,7 @@ class NamespacesServiceImpl implements NamespacesService
     public function update(int $id, UpdateNamespaceRequest $data): Collection
     {
         try {
-            $this->checkPermission("update");
+            $this->checkPermission(ActionsTypes::UPDATE);
 
             $this->logger->info("Start of update namespace id={$id} (service layer)");
 
@@ -243,7 +245,7 @@ class NamespacesServiceImpl implements NamespacesService
     public function delete(int $id): Collection
     {
         try {
-            $this->checkPermission("delete");
+            $this->checkPermission(ActionsTypes::DELETE);
 
             $this->logger->info("Start of delete namespace id={$id} (service layer)");
 
@@ -270,7 +272,7 @@ class NamespacesServiceImpl implements NamespacesService
     public function getById(int $id): Collection
     {
         try {
-            $this->checkPermission("read");
+            $this->checkPermission(ActionsTypes::READ);
 
             $this->logger->info("Start of getById namespace id={$id} (service layer)");
 
