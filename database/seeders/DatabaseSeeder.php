@@ -135,7 +135,7 @@ class DatabaseSeeder extends Seeder
             } )->pluck('id')->all();
 
             $slavePermissionIds = $permissions->filter(function ($value, $key) {
-                return $value->resource_type == ResourcesTypes::CONFIGURATIONS;
+                return $value->resource_type == ResourcesTypes::CONFIGURATIONS || ($value->resource_type == ResourcesTypes::SERVICES_ENVIRONMENTS && $value->action == ActionsTypes::READ) || ($value->resource_type == ResourcesTypes::CHANNELS && $value->action == ActionsTypes::READ);
             } )->pluck('id')->all();
 
 
