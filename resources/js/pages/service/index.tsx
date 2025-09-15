@@ -6,14 +6,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import serviceRoutes from '@/routes/services';
-import { PaginatedResponse, Service, type BreadcrumbItem, type Channel } from '@/types';
+import { PaginatedResponse, Service, type BreadcrumbItem } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import channelRoutes from '@/routes/channels';
 import axios from 'axios';
+import { useFlash } from '@/hooks/use-flash';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Service', href: serviceRoutes.index.url() },
@@ -47,10 +47,9 @@ export default function ServicePage({
 
 
   const { props } = usePage<Props>();
-    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
-    const [successFlash, setSuccessFlash] = useState<string | undefined>(
-        props.flash?.success ?? props.flash?.message
-    );
+
+  const {resetAll} = useFlash(props?.flash);
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, setErrors] = useState(props.errors);
   const isPaginated = (val: unknown): val is PaginatedResponse<Service> =>
@@ -82,15 +81,6 @@ export default function ServicePage({
   const totalItems = isPaginated(services) ? services.total : (services as Service[]).length;
 
 
-    // Toast flash error/success (fitur local)
-    useEffect(() => {
-        if (errorFlash) toast.error(errorFlash);
-    }, [errorFlash]);
-
-    useEffect(() => {
-        if (successFlash) toast.info(successFlash);
-    }, [successFlash]);
-
   const handleSearch = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page: 1, size: itemsPerPage };
@@ -107,8 +97,7 @@ export default function ServicePage({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page: 1, size: itemsPerPage };
     setErrors({});
-    setErrorFlash(undefined);
-    setSuccessFlash(undefined);
+    resetAll();
     router.get(serviceRoutes.index.url(), params, {
       preserveState: true,
       replace: true,
@@ -132,6 +121,7 @@ export default function ServicePage({
                         toast.success(`Services "${item.name}" has been deleted.`)
 
                         router.reload({ only: ['services'] })
+                        // eslint-disable-next-line
                     } catch (err: any) {
                         const status = err?.response?.status
                         const msg = err?.response?.data?.message
