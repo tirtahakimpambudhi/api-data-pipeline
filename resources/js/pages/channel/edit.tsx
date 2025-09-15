@@ -6,6 +6,7 @@ import { Channel } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import React, { useEffect, useRef, useState } from 'react';
 import { toast, Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
 
 type Props = {
     channel: Channel;
@@ -23,10 +24,7 @@ export default function EditPage({ channel }: Props) {
         name: channel.name ?? '',
     });
     const { props } = usePage<Props>();
-    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
-    const [successFlash, setSuccessFlash] = useState<string | undefined>(
-        props.flash?.success ?? props.flash?.message
-    );
+    const {resetAll} = useFlash(props?.flash);
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         put(channels.update.url({ channel: channel.id }), {
@@ -34,19 +32,11 @@ export default function EditPage({ channel }: Props) {
         });
     };
 
-    useEffect(() => {
-        if (errorFlash) toast.error(errorFlash);
-    }, [errorFlash]);
-
-    useEffect(() => {
-        if (successFlash) toast.info(successFlash);
-    }, [successFlash]);
 
     const handleReset = () => {
         setData('name', initial.current.name ?? '');
         clearErrors()
-        setErrorFlash(undefined);
-        setSuccessFlash(undefined);
+        resetAll()
     };
 
     const isDirty = data.name !== initial.current.name;
