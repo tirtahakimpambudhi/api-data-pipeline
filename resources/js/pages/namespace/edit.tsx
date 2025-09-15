@@ -7,6 +7,7 @@ import type { Namespace } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast, Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
 
 type Props = {
     namespace: Namespace;
@@ -25,7 +26,7 @@ export default function EditPage({ namespace }: Props) {
         name: namespace.name ?? '',
     });
 
-    const [flashError, setFlashError] = useState<string | null>(props.flash?.error ?? null);
+    const {resetAll} = useFlash(props?.flash);
     const [serverError, setServerError] = useState<string | null>(props.serverError ?? null);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -38,17 +39,13 @@ export default function EditPage({ namespace }: Props) {
     const handleReset = () => {
         setData('name', initial.current.name ?? '');
         clearErrors()
-        setFlashError(null);
+        resetAll();
         setServerError(null);
     };
 
     const isDirty = data.name !== initial.current.name;
     const isDisabled = processing || !data.name.trim() || !isDirty;
-    useEffect(() => {
-        if (flashError) {
-            toast.error(flashError);
-        }
-    }, [flashError]);
+
     const topErrorMessages = useMemo(() => {
         const bag = Object.values(errors ?? {}).flat();
         const serverErr = serverError ? [serverError] : [];
@@ -58,7 +55,7 @@ export default function EditPage({ namespace }: Props) {
     return (
         <AppLayout>
             <Head title="Edit Namespace" />
-            <Toaster richColors position="top-center" />
+            <Toaster richColors position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-lg rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <h1 className="text-xl font-semibold">Edit Namespace</h1>
