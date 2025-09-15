@@ -14,6 +14,7 @@ import { toast, Toaster } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import environmentRoutes from '@/routes/environments';
 import axios from 'axios';
+import { useFlash } from '@/hooks/use-flash';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'channel', href: channelRoutes.index.url() },
@@ -47,10 +48,7 @@ export default function channelPage({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any);
     const { props } = usePage<Props>();
-    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
-    const [successFlash, setSuccessFlash] = useState<string | undefined>(
-        props.flash?.success ?? props.flash?.message
-    );
+    const {resetAll} = useFlash(props?.flash);
     const [errors, setErrors] = useState(props.errors);
   const initialSearch = (filters?.search ?? new URLSearchParams(window.location.search).get('search') ?? '') as string;
   const initialPage = (filters?.page ?? (isPaginated(channels) ? channels.current_page : 1)) as number;
@@ -92,17 +90,10 @@ export default function channelPage({
       onError: () => toast.error('Failed load data.'),
     });
   };
-    useEffect(() => {
-        if (errorFlash) toast.error(errorFlash);
-    }, [errorFlash]);
 
-    useEffect(() => {
-        if (successFlash) toast.info(successFlash);
-    }, [successFlash]);
   const handleReset = () => {
     setSearch('');
-    setErrorFlash(undefined);
-    setSuccessFlash(undefined);
+    resetAll();
     setErrors({});
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page: 1, size: itemsPerPage };
