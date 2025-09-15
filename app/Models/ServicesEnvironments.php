@@ -23,6 +23,10 @@ class ServicesEnvironments extends Model
         'environment_id',
     ];
 
+    protected $appends = [
+        'name',
+    ];
+
     protected function name(): Attribute
     {
         return Attribute::get(function (): string {

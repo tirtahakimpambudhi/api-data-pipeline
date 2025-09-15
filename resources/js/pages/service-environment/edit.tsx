@@ -49,7 +49,7 @@ export default function ServiceEnvironmentEditPage({
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <h1 className="text-xl font-semibold">Edit Service Environment</h1>
-                    <p className="mb-4 text-muted-foreground">Perbarui relasi service dan environment di bawah ini.</p>
+                    <p className="mb-4 text-muted-foreground">Update service environment.</p>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>

@@ -31,17 +31,9 @@ export default function CreateServiceEnvironmentPage({ services, environments }:
                 <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">
                         <h1 className="text-xl font-semibold">Create Service Environment</h1>
-                        <div className="flex gap-2">
-                            <Button type="button" variant="outline" onClick={handleReset} disabled={!isDirty || processing}>
-                                Reset
-                            </Button>
-                            <Button type="submit" form="create-service-environment-form" disabled={isDisabled}>
-                                {processing ? 'Saving...' : 'Save'}
-                            </Button>
-                        </div>
                     </div>
 
-                    <p className="mb-4 text-muted-foreground">Pilih service dan environment untuk membuat relasi baru.</p>
+                    <p className="mb-4 text-muted-foreground">Create a new service environment.</p>
 
                     <form id="create-service-environment-form" onSubmit={handleSubmit} className="space-y-4">
                         <div>
@@ -78,13 +70,18 @@ export default function CreateServiceEnvironmentPage({ services, environments }:
                             {errors.environment_id && <p className="mt-1 text-sm text-destructive">{errors.environment_id}</p>}
                         </div>
 
-                        <div className="flex items-center justify-end gap-2">
-                            <Button asChild variant="ghost" disabled={processing}>
-                                <Link href={serviceEnvironmentRoute.index().url}>Cancel</Link>
+                        <div className="flex items-center justify-between">
+                            <Button asChild variant="ghost">
+                                <Link href={serviceEnvironmentRoute.index.url()}>Cancel</Link>
                             </Button>
-                            <Button type="submit" disabled={isDisabled}>
-                                {processing ? 'Saving...' : 'Save'}
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button type="button" variant="outline" onClick={handleReset} disabled={!isDirty || processing}>
+                                    Reset
+                                </Button>
+                                <Button type="submit" disabled={isDisabled}>
+                                    {processing ? 'Saving...' : 'Save'}
+                                </Button>
+                            </div>
                         </div>
                     </form>
                 </div>

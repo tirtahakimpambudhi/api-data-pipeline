@@ -27,8 +27,6 @@ const formatDateTime = (iso?: string) => {
 
 export default function ServiceEnvironmentPage({
   serviceEnvironments,
-  services,
-  environments,
   filters,
 }: {
   serviceEnvironments: PaginatedResponse<ServiceEnvironment> | ServiceEnvironment[];
@@ -37,7 +35,7 @@ export default function ServiceEnvironmentPage({
   filters?: { search?: string; page?: number; size?: number; service_id?: number; environment_id?: number };
 }) {
   const isPaginated = (val: unknown): val is PaginatedResponse<ServiceEnvironment> =>
-    !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any);
+    !!val && typeof val === 'object' && 'data' in (val as object) && 'total' in (val as object);
 
   const initialSearch = (filters?.search ?? new URLSearchParams(window.location.search).get('search') ?? '') as string;
   const initialPage = (filters?.page ?? (isPaginated(serviceEnvironments) ? serviceEnvironments.current_page : 1)) as number;
@@ -64,7 +62,7 @@ export default function ServiceEnvironmentPage({
   const totalItems = isPaginated(serviceEnvironments) ? serviceEnvironments.total : (serviceEnvironments as ServiceEnvironment[]).length;
 
   const handleSearch = () => {
-    const params: Record<string, any> = { page: 1, size: itemsPerPage };
+    const params: Record<string, string | number> = { page: 1, size: itemsPerPage };
     if (search) params.search = search;
     router.get(search ? serviceEnvironmentRoute.search().url : serviceEnvironmentRoute.index().url, params, {
       preserveState: true,
@@ -75,7 +73,7 @@ export default function ServiceEnvironmentPage({
 
   const handleReset = () => {
     setSearch('');
-    const params: Record<string, any> = { page: 1, size: itemsPerPage };
+    const params: Record<string,number > = { page: 1, size: itemsPerPage };
     router.get(serviceEnvironmentRoute.index().url, params, {
       preserveState: true,
       replace: true,
@@ -83,7 +81,7 @@ export default function ServiceEnvironmentPage({
   };
 
   const handleDelete = useCallback((item: ServiceEnvironment) => {
-    toast.warning(`Delete relation ID ${item.id}?`, {
+    toast.warning(`Delete relation  ${item.name}?`, {
       description: 'This action cannot be undone.',
       action: {
         label: 'Delete',
@@ -101,7 +99,7 @@ export default function ServiceEnvironmentPage({
 
   const onPageChange = (page: number) => {
     setCurrentPage(page);
-    const params: Record<string, any> = { page, size: itemsPerPage };
+    const params: Record<string, string | number> = { page, size: itemsPerPage };
     if (search) params.search = search;
     router.get(search ? serviceEnvironmentRoute.search().url : serviceEnvironmentRoute.index().url, params, {
       preserveState: true,
