@@ -6,6 +6,7 @@ import namespaces, { store } from '@/routes/namespaces';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
 
 type PageProps = {
     flash?: { error?: string; success?: string };
@@ -18,7 +19,7 @@ export default function CreatePage() {
     const { data, setData, post, processing, errors, reset, wasSuccessful,clearErrors } = useForm({
         name: '',
     });
-    const [flashError, setFlashError] = useState<string | null>(props.flash?.error ?? null);
+    const {resetAll} = useFlash(props?.flash);
     const [serverError, setServerError] = useState<string | null>(props.serverError ?? null);
 
 
@@ -30,17 +31,13 @@ export default function CreatePage() {
     const handleReset = () => {
         reset('name');
         clearErrors()
-        setFlashError(null);
+        resetAll()
         setServerError(null);
     };
 
     const isDirty = data.name;
     const isDisabled = processing || !data.name.trim() || !isDirty;
-    useEffect(() => {
-        if (flashError) {
-            toast.error(flashError);
-        }
-    }, [flashError]);
+
     const topErrorMessages = useMemo(() => {
         const bag = Object.values(errors ?? {}).flat();
         const serverErr = serverError ? [serverError] : [];
@@ -50,7 +47,7 @@ export default function CreatePage() {
     return (
         <AppLayout>
             <Head title="Create Namespace" />
-            <Toaster richColors position="top-center" />
+            <Toaster richColors position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-lg rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">
