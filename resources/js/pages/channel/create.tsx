@@ -5,6 +5,7 @@ import channels, { store } from '@/routes/channels';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import React, { useEffect, useState } from 'react';
 import { toast, Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
 
 type Props = {
     flash?: {
@@ -19,26 +20,16 @@ export default function CreatePage() {
         name: '',
     });
     const { props } = usePage<Props>();
-    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
-    const [successFlash, setSuccessFlash] = useState<string | undefined>(
-        props.flash?.success ?? props.flash?.message
-    );
+    const {resetAll} = useFlash(props?.flash);
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post(store.url(), { preserveScroll: true });
     };
-    useEffect(() => {
-        if (errorFlash) toast.error(errorFlash);
-    }, [errorFlash]);
 
-    useEffect(() => {
-        if (successFlash) toast.info(successFlash);
-    }, [successFlash]);
     const handleReset = () => {
         reset('name');
         clearErrors()
-        setErrorFlash(undefined);
-        setSuccessFlash(undefined);
+        resetAll();
     };
 
     const isDirty = data.name !== '';
