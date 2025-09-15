@@ -35,7 +35,7 @@ class Configurations extends Model
                 $svcEnv->relationLoaded('environment') &&
                 $svcEnv->environment
             ) {
-                return "{$this->service->namespace->name}.{$this->service->name}[{$this->environment->name}] | {$this->channel->name}";
+                return "{$svcEnv->service->namespace->name}.{$svcEnv->service->name}[{$svcEnv->environment->name}] | {$this->channel->name}";
             }
 
                 return '';
