@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import AppLayout from '@/layouts/app-layout';
 import namespaceRoutes from '@/routes/namespaces';
-import { type BreadcrumbItem, type Namespace } from '@/types';
+import { type BreadcrumbItem, type Namespace, PaginatedResponse } from '@/types';
 import { Head, Link, router, usePage  } from '@inertiajs/react';
 import { destroy as destroyNamespace } from '@/routes/namespaces/index'
 import { MoreVertical } from 'lucide-react';
@@ -16,6 +16,7 @@ import axios from 'axios'
 
 import { toast, Toaster } from 'sonner';
 import { useFlash } from '@/hooks/use-flash';
+import { numberItemOnPage } from '@/lib/utils';
 
 type ErrorBag = Record<string, string[]>;
 
@@ -68,6 +69,10 @@ const hasMeta = <T,>(val: unknown): val is MetaPaginated<T> =>
 const isFlatPaginated = <T,>(val: unknown): val is FlatPaginated<T> =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any) && !('meta' in (val as any));
+
+const isPaginated = (val: unknown): val is PaginatedResponse<Namespace> =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any);
 
 export default function NamespacePage({
                                           namespaces,
@@ -214,7 +219,14 @@ export default function NamespacePage({
             duration: 8000,
         })
     }, [])
-
+    const numberItem = numberItemOnPage(
+        isPaginated(namespaces)
+            ? namespaces.current_page
+            : currentPage,
+        isPaginated(namespaces)
+            ? namespaces.per_page
+            : itemsPerPage,
+    );
     const onPageChange = (page: number) => {
         setCurrentPage(page);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -239,7 +251,7 @@ export default function NamespacePage({
 
     const columns: ColumnDefinition<Namespace>[] = useMemo(
         () => [
-            { header: 'No', align: 'left', render: (_item, index) => index+1 },
+            { header: 'No', align: 'left', render: (_item, index) => numberItem(index) },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             { header: 'Name', align: 'left', render: (item, _) => item.name },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -274,7 +286,7 @@ export default function NamespacePage({
                 ),
             },
         ],
-        [handleDelete]
+        [numberItem,handleDelete]
     );
 
     return (
