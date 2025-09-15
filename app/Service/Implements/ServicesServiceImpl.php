@@ -2,6 +2,8 @@
 
 namespace App\Service\Implements;
 
+use App\Constants\ActionsTypes;
+use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\InternalServiceException;
@@ -54,7 +56,7 @@ class ServicesServiceImpl implements ServicesService
             throw new UnauthorizedServiceException("User not authenticated, must be logged in.");
         }
 
-        if (!$user->hasPermission('services', $action)) {
+        if (!$user->hasPermission(ResourcesTypes::SERVICES, $action)) {
             $this->logger->warning("{$user->name} does not have permission to {$action} services");
             throw new PermissionDeniedServiceException("User does not have permission to {$action} services.");
         }
@@ -74,7 +76,7 @@ class ServicesServiceImpl implements ServicesService
     public function getAll(PaginationRequest | null $data, bool $onlyService = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission("read");
+            $this->checkPermission(ActionsTypes::READ);
 
             $this->logger->info("Start of getAll services (service layer)");
 
@@ -113,7 +115,7 @@ class ServicesServiceImpl implements ServicesService
     public function getById(int $id): Collection
     {
         try {
-            $this->checkPermission("read");
+            $this->checkPermission(ActionsTypes::READ);
 
             $this->logger->info("Start of getById services id={$id} (service layer)");
 
@@ -140,7 +142,7 @@ class ServicesServiceImpl implements ServicesService
     public function search(SearchPaginationRequest | null $data, bool $onlyService = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission("read");
+            $this->checkPermission(ActionsTypes::READ);
 
             $this->logger->info("Start of search services (service layer)");
 
@@ -182,7 +184,7 @@ class ServicesServiceImpl implements ServicesService
     public function create(CreateServiceRequest $data): Collection
     {
         try {
-            $this->checkPermission("create");
+            $this->checkPermission(ActionsTypes::CREATE);
 
             $this->logger->info("Start of create services (service layer)");
 
@@ -219,7 +221,7 @@ class ServicesServiceImpl implements ServicesService
     public function update(int $id, UpdateServiceRequest $data): Collection
     {
         try {
-            $this->checkPermission("update");
+            $this->checkPermission(ActionsTypes::UPDATE);
 
             $this->logger->info("Start of update services id={$id} (service layer)");
 
@@ -276,7 +278,7 @@ class ServicesServiceImpl implements ServicesService
     public function delete(int $id): Collection
     {
         try {
-            $this->checkPermission("delete");
+            $this->checkPermission(ActionsTypes::DELETE);
 
             $this->logger->info("Start of delete services id={$id} (service layer)");
 
