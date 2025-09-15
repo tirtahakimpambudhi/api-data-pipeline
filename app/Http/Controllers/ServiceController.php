@@ -47,19 +47,9 @@ class ServiceController extends Controller
             if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, $request)) {
                 return $redirect;
             }
-            $resp = Inertia::render('service/index', [
-                'services' => [],
-                'filters'    => $request->all(['page', 'size']),
-                'errors'     => method_exists($e, 'toMessageBag') ? $e->toMessageBag()->toArray() : ['error' => [$e->getMessage()]],
-            ]);
-            return $this->inertiaWithStatus($resp, $e->getCode());
+            return redirect()->route('dashboard')->with('error', $e->getMessage());
         } catch (Throwable $e) {
-            $resp = Inertia::render('service/index', [
-                'services' => [],
-                'filters'    => $request->all(['page', 'size']),
-                'errors'     => ['error' => ['Internal server error.']],
-            ]);
-            return $this->inertiaWithStatus($resp, 500);
+            return redirect()->route('dashboard')->with('error', 'Internal server error');
         }
 
     }
@@ -77,25 +67,24 @@ class ServiceController extends Controller
             if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, $request)) {
                 return $redirect;
             }
-            $resp = Inertia::render('service/index', [
-                'services' => $this->emptyPaginated(),
-                'filters'    => $request->all(['search','page', 'size']),
-                'errors'     => method_exists($e, 'toMessageBag') ? $e->toMessageBag()->toArray() : ['error' => [$e->getMessage()]],
-            ]);
-            return $this->inertiaWithStatus($resp, $e->getCode());
+            return redirect()->route('dashboard')->with('error', $e->getMessage());
         } catch (Throwable $e) {
             $resp = Inertia::render('service/index', [
                 'services' => $this->emptyPaginated(),
                 'filters'    => $request->all(['search', 'page', 'size']),
                 'errors'     => ['error' => ['Internal server error.']],
             ]);
-            return $this->inertiaWithStatus($resp, 500);
+            return redirect()->route('dashboard')->with('error', 'Internal server error');
         }
     }
 
     public function create()
     {
         try {
+            $user = Auth::guard('web')->user();
+            if (!$user->hasPermission(ResourcesTypes::SERVICES, ActionsTypes::CREATE)) {
+                return redirect()->route('dashboard')->with('error', 'User doesn\'t have permissions to create services.');
+            };
             $namespaces = $this->namespacesService->getAll(null, true);
             return Inertia::render('service/create', [
                 'namespaces' => $namespaces,
