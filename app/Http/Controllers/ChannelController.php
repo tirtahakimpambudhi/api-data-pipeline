@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\ActionsTypes;
+use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\InternalServiceException;
 use App\Http\Requests\General\PaginationRequest;
@@ -142,6 +144,10 @@ class ChannelController extends Controller
     public function edit(int $id)
     {
         try {
+            $user = Auth::guard('web')->user();
+            if (!$user->hasPermission(ResourcesTypes::CHANNELS, ActionsTypes::UPDATE)) {
+                return redirect()->route('dashboard')->with('error', 'User doesn\'t have permissions to update channels.');
+            };
             $channel = $this->channelsService->getById($id);
             return Inertia::render('channel/edit', [
                 'channel' => $channel,
