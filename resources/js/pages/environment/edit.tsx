@@ -4,8 +4,9 @@ import AppLayout from '@/layouts/app-layout';
 import environments from '@/routes/environments';
 import { Environment } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { toast, Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
 
 type Props = {
     environment: Environment;
@@ -23,10 +24,7 @@ export default function EditPage({ environment }: Props) {
         name: environment.name ?? '',
     });
     const {props} = usePage<Props>();
-    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
-    const [successFlash, setSuccessFlash] = useState<string | undefined>(
-        props.flash?.success ?? props.flash?.message
-    );
+    const {resetAll} = useFlash(props?.flash);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,18 +32,11 @@ export default function EditPage({ environment }: Props) {
             preserveScroll: true,
         });
     };
-    useEffect(() => {
-        if (errorFlash) toast.error(errorFlash);
-    }, [errorFlash]);
 
-    useEffect(() => {
-        if (successFlash) toast.info(successFlash);
-    }, [successFlash]);
     const handleReset = () => {
         setData('name', initial.current.name ?? '');
         clearErrors();
-        setSuccessFlash(undefined);
-        setErrorFlash(undefined);
+        resetAll()
     };
 
     const isDirty = data.name !== initial.current.name;
