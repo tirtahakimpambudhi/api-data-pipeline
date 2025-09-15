@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import axios from 'axios';
+import { useFlash } from '@/hooks/use-flash';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'environment', href: environmentRoutes.index.url() },
@@ -47,10 +48,7 @@ export default function environmentPage({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any);
     const { props } = usePage<Props>();
-    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
-    const [successFlash, setSuccessFlash] = useState<string | undefined>(
-        props.flash?.success ?? props.flash?.message
-    );
+    const {resetAll} = useFlash(props?.flash);
     const [_, setErrors] = useState(props.errors);
   const initialSearch = (filters?.search ?? new URLSearchParams(window.location.search).get('search') ?? '') as string;
   const initialPage = (filters?.page ?? (isPaginated(environments) ? environments.current_page : 1)) as number;
@@ -92,19 +90,12 @@ export default function environmentPage({
       onError: () => toast.error('Failed load data.'),
     });
   };
-    useEffect(() => {
-        if (errorFlash) toast.error(errorFlash);
-    }, [errorFlash]);
 
-    useEffect(() => {
-        if (successFlash) toast.info(successFlash);
-    }, [successFlash]);
   const handleReset = () => {
     setSearch('');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page: 1, size: itemsPerPage };
-      setErrorFlash(undefined);
-      setSuccessFlash(undefined);
+      resetAll()
       setErrors({});
     router.get(environmentRoutes.index.url(), params, {
       preserveState: true,
