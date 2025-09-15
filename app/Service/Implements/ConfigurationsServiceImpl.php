@@ -2,6 +2,8 @@
 
 namespace App\Service\Implements;
 
+use App\Constants\ActionsTypes;
+use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\InternalServiceException;
@@ -41,7 +43,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
     {
         $user = $this->guard->user();
         if (!$user) throw new UnauthorizedServiceException("User not authenticated, must be logged in.");
-        if (!$user->hasPermission('configurations', $action)) {
+        if (!$user->hasPermission(ResourcesTypes::CONFIGURATIONS, $action)) {
             throw new PermissionDeniedServiceException("User does not have permission to {$action} configurations.");
         }
     }
@@ -56,7 +58,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
     public function getAll(PaginationRequest | null $data, bool $onlyConf = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission('read');
+            $this->checkPermission(ActionsTypes::READ);
 
             $page = 0;
             $size = 0;
@@ -80,7 +82,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
     public function search(SearchPaginationRequest | null $data, bool $onlyConf = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission('read');
+            $this->checkPermission(ActionsTypes::READ);
             $term   = '';
             $page = 0;
             $size = 0;
@@ -115,7 +117,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
     public function create(CreateConfigurationRequest $data): Collection
     {
         try {
-            $this->checkPermission('create');
+            $this->checkPermission(ActionsTypes::CREATE);
             $value = $data->validated();
 
             $row   = $this->model->newQuery()->create([
@@ -138,7 +140,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
     public function update(int $id, UpdateConfigurationRequest $data): Collection
     {
         try {
-            $this->checkPermission('update');
+            $this->checkPermission(ActionsTypes::UPDATE);
             $row = $this->getOrFail($id);
             $value = $data->validated();
 
@@ -166,7 +168,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
     public function delete(int $id): Collection
     {
         try {
-            $this->checkPermission('delete');
+            $this->checkPermission(ActionsTypes::DELETE);
             $row = $this->getOrFail($id);
             $row->delete();
             return collect(['id'=>$id, 'deleted'=>true]);
@@ -178,7 +180,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
     public function getById(int $id): Collection
     {
         try {
-            $this->checkPermission('read');
+            $this->checkPermission(ActionsTypes::READ);
             $row = $this->model->newQuery()
                 ->with(['serviceEnvironment.service.namespace','serviceEnvironment.environment','channel'])
                 ->find($id);
