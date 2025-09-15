@@ -5,6 +5,7 @@ namespace App\Http\Requests\Services;
 use App\Exceptions\ValidationServiceException;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CreateServiceRequest extends FormRequest
 {
@@ -24,7 +25,14 @@ class CreateServiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|max:255|string|unique:services',
+            'name' => [
+                'required',
+                'max:255',
+                'string',
+                Rule::unique('services')->where(function ($query) {
+                    return $query->where('namespace_id', $this->namespace_id);
+                }),
+            ],
             'namespace_id' => 'required|min:0|numeric|exists:namespaces,id',
         ];
     }
@@ -41,4 +49,6 @@ class CreateServiceRequest extends FormRequest
             'namespace_id.exists' => 'Namespace id does not exist!',
         ];
     }
+
+
 }

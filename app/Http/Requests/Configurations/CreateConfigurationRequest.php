@@ -38,4 +38,5 @@ class CreateConfigurationRequest extends FormRequest
             'channel_id.unique' => 'The pair service_environment_id + channel_id already exists!',
         ];
     }
+
 }

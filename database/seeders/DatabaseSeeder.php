@@ -135,7 +135,7 @@ class DatabaseSeeder extends Seeder
             } )->pluck('id')->all();
 
             $slavePermissionIds = $permissions->filter(function ($value, $key) {
-                return $value->resource_type == ResourcesTypes::CONFIGURATIONS;
+                return $value->resource_type == ResourcesTypes::CONFIGURATIONS || ($value->resource_type == ResourcesTypes::SERVICES_ENVIRONMENTS && $value->action == ActionsTypes::READ) || ($value->resource_type == ResourcesTypes::CHANNELS && $value->action == ActionsTypes::READ);
             } )->pluck('id')->all();
 
 
@@ -155,7 +155,7 @@ class DatabaseSeeder extends Seeder
 
             Users::factory(4)->state(['role_id' => $slaveRoleId[0]])->create();
             Users::factory(1)->state(['role_id' => $almightyRoleId[0]])->create();
-
+            Users::factory(1)->state(['role_id' => $almightyRoleId[0], 'email' => 'admin@gmail.com', 'password' => \Illuminate\Support\Facades\Hash::make("t1rt@h4k1m")])->create();
             DB::commit();
 
 //             echo $roles->toJson(JSON_PRETTY_PRINT) . PHP_EOL;

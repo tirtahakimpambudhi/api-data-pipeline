@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\NotFoundServiceException;
-use App\Http\Requests\General\PaginationRequest; 
+use App\Http\Requests\General\PaginationRequest; // <-- KUNCI PENTING
 use App\Http\Requests\ServiceEnvironment\CreateServiceEnvironmentRequest;
 use App\Http\Requests\ServiceEnvironment\UpdateServiceEnvironmentRequest;
 use App\Http\Requests\General\SearchPaginationRequest;
@@ -46,7 +46,8 @@ class ServiceEnvironmentController extends Controller
             'filters' => $request->all(['page', 'size']),
         ]);
     }
-    
+
+
     public function search(SearchPaginationRequest $request): Response
     {
         $serviceEnvironments = $this->serviceEnvironmentsService->search($request);
@@ -68,7 +69,8 @@ class ServiceEnvironmentController extends Controller
             'environments' => Environments::all(),
         ]);
     }
-    
+
+
     public function store(CreateServiceEnvironmentRequest $request): RedirectResponse
     {
         try {
@@ -97,6 +99,7 @@ class ServiceEnvironmentController extends Controller
             abort(404);
         }
     }
+
 
     public function show(int $id): Response
     {

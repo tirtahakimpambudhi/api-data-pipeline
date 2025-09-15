@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 export interface ColumnDefinition<T> {
     header: string;
     accessor?: keyof T;
-    render?: (item: T) => ReactNode;
+    render?: (item: T, index: number) => ReactNode;
     align?: 'left' | 'center' | 'right';
 }
 
@@ -39,7 +39,7 @@ export default function DataTable<T extends { id: number | string }>({ data, col
                 </thead>
 
                 <tbody className="divide-y divide-border bg-card">
-                    {data.map((item) => (
+                    {data.map((item, index) => (
                         <tr key={item.id} className="transition-colors hover:bg-muted/60">
                             {columns.map((column, colIndex) => (
                                 <td
@@ -51,7 +51,7 @@ export default function DataTable<T extends { id: number | string }>({ data, col
                                         column.accessor ? 'text-foreground' : 'text-muted-foreground',
                                     ].join(' ')}
                                 >
-                                    {column.render ? column.render(item) : column.accessor ? String(item[column.accessor]) : ''}
+                                    {column.render ? column.render(item,index) : column.accessor ? String(item[column.accessor]) : ''}
                                 </td>
                             ))}
                         </tr>

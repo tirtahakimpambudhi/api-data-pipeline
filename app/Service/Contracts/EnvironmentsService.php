@@ -13,11 +13,11 @@ use Illuminate\Support\Collection;
 
 interface EnvironmentsService
 {
-    public function getAll(PaginationRequest $data): LengthAwarePaginator | Collection;
+    public function getAll(PaginationRequest | null $data, bool $onlyEnv = false): LengthAwarePaginator | Collection;
 
     public function getById(int $id): Collection;
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator | Collection;
+    public function search(SearchPaginationRequest | null $data, bool $onlyEnv = false): LengthAwarePaginator | Collection;
 
     public function create(CreateEnvironmentRequest $data): Collection;
     public function update(int $id, UpdateEnvironmentRequest $data): Collection;

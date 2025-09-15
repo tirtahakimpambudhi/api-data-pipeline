@@ -2,6 +2,8 @@
 
 namespace App\Service\Implements;
 
+use App\Constants\ActionsTypes;
+use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\InternalServiceException;
@@ -41,7 +43,7 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
     {
         $user = $this->guard->user();
         if (!$user) throw new UnauthorizedServiceException("User not authenticated, must be logged in.");
-        if (!$user->hasPermission('services_environments', $action)) {
+        if (!$user->hasPermission(ResourcesTypes::SERVICES_ENVIRONMENTS, $action)) {
             throw new PermissionDeniedServiceException("User does not have permission to {$action} services_environments.");
         }
     }
@@ -53,15 +55,23 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
         return $row;
     }
 
-    public function getAll(PaginationRequest $data): LengthAwarePaginator|Collection
+    public function getAll(PaginationRequest | null $data, bool $onlySvcEnv = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission('read');
-            $value = $data->validated();
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
+            $this->checkPermission(ActionsTypes::READ);
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+            }
 
-            $query = $this->model->newQuery()->with(['service.namespace','environment','configurations.channel']);
+            $query = $this->model->newQuery();
+
+            if (!$onlySvcEnv) {
+                $query->with(['service.namespace','environment','configurations.channel']);
+            }
 
             if ($page > 0 && $size > 0) return $this->applyPagination($query, $page, $size);
             return $query->get();
@@ -69,10 +79,10 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
         catch (\Throwable $e) { throw new InternalServiceException('Failed to load services_environments. Please try again later.'); }
     }
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator|Collection
+    public function search(SearchPaginationRequest | null $data, bool $onlySvcEnv = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission('read');
+            $this->checkPermission(ActionsTypes::READ);
             $value = $data->validated();
             $term  = trim((string)($value['search'] ?? ''));
             $page  = (int)($value['page'] ?? 0);
@@ -90,7 +100,6 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
                 $query->where('environment_id', (int)$envId);
             }
 
-            // Pencarian dengan join relasi (nama namespace/service/environment)
             if ($term !== '') {
                 $query->where(function($q) use ($term) {
                     $q->whereHas('service', fn($sq) => $sq->whereLike('name', "%{$term}%"))
@@ -108,7 +117,7 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
     public function create(CreateServiceEnvironmentRequest $data): Collection
     {
         try {
-            $this->checkPermission('create');
+            $this->checkPermission(ActionsTypes::CREATE);
             $value = $data->validated();
             $row   = $this->model->newQuery()->create([
                 'service_id'     => (int)$value['service_id'],
@@ -129,7 +138,7 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
     public function update(int $id, UpdateServiceEnvironmentRequest $data): Collection
     {
         try {
-            $this->checkPermission('update');
+            $this->checkPermission(ActionsTypes::UPDATE);
             $row = $this->getOrFail($id);
             $value = $data->validated();
 
@@ -157,7 +166,7 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
     public function delete(int $id): Collection
     {
         try {
-            $this->checkPermission('delete');
+            $this->checkPermission(ActionsTypes::DELETE);
             $row = $this->getOrFail($id);
             $row->delete();
             return collect(['id'=>$id, 'deleted'=>true]);
@@ -169,7 +178,7 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
     public function getById(int $id): Collection
     {
         try {
-            $this->checkPermission('read');
+            $this->checkPermission(ActionsTypes::READ);
             $row = $this->model->newQuery()
                 ->with(['service.namespace','environment','configurations.channel'])
                 ->find($id);

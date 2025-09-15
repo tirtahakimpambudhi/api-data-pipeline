@@ -2,6 +2,8 @@
 
 namespace App\Service\Implements;
 
+use App\Constants\ActionsTypes;
+use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\InternalServiceException;
@@ -44,7 +46,7 @@ class EnvironmentsServiceImpl implements EnvironmentsService
             $this->logger->warning("User not authenticated");
             throw new UnauthorizedServiceException("User not authenticated, must be logged in.");
         }
-        if (!$user->hasPermission('environments', $action)) {
+        if (!$user->hasPermission(ResourcesTypes::ENVIRONMENTS, $action)) {
             $this->logger->warning("{$user->name} does not have permission to {$action} environments");
             throw new PermissionDeniedServiceException("User does not have permission to {$action} environments.");
         }
@@ -60,15 +62,24 @@ class EnvironmentsServiceImpl implements EnvironmentsService
         return $row;
     }
 
-    public function getAll(PaginationRequest $data): LengthAwarePaginator|Collection
+    public function getAll(PaginationRequest | null $data, bool $onlyEnv = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission('read');
-            $value = $data->validated();
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
+            $this->checkPermission(ActionsTypes::READ);
 
-            $query = $this->model->newQuery()->with(['services', 'servicesEnvironments', 'configurations']);
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+            }
+
+            $query = $this->model->newQuery();
+
+            if (!$onlyEnv) {
+                $query->with(['services', 'servicesEnvironments', 'configurations']);
+            }
 
             if ($page > 0 && $size > 0) {
                 return $this->applyPagination($query, $page, $size);
@@ -81,16 +92,24 @@ class EnvironmentsServiceImpl implements EnvironmentsService
         }
     }
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator|Collection
+    public function search(SearchPaginationRequest | null $data, bool $onlyEnv = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission('read');
-            $value = $data->validated();
-            $term  = trim((string)($value['search'] ?? ''));
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
+            $this->checkPermission(ActionsTypes::READ);
+            $page = 0;
+            $size = 0;
+            $term = '';
+            if ($data !== null) {
+                $value = $data->validated();
+                $term  = trim((string)($value['search'] ?? ''));
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+            }
 
-            $query = $this->model->newQuery()->with(['services', 'servicesEnvironments', 'configurations']);
+            $query = $this->model->newQuery();
+            if (!$onlyEnv) {
+                $query->with(['services', 'servicesEnvironments', 'configurations']);
+            }
             if ($term !== '') {
                 $query->whereLike('name', "%{$term}%");
             }
@@ -109,7 +128,7 @@ class EnvironmentsServiceImpl implements EnvironmentsService
     public function create(CreateEnvironmentRequest $data): Collection
     {
         try {
-            $this->checkPermission('create');
+            $this->checkPermission(ActionsTypes::CREATE);
             $value = $data->validated();
             $row   = $this->model->newQuery()->create(['name' => (string)$value['name']]);
             return collect($row);
@@ -128,7 +147,7 @@ class EnvironmentsServiceImpl implements EnvironmentsService
     public function update(int $id, UpdateEnvironmentRequest $data): Collection
     {
         try {
-            $this->checkPermission('update');
+            $this->checkPermission(ActionsTypes::UPDATE);
             $row = $this->getOrFail($id);
 
             $value = $data->validated();
@@ -157,7 +176,7 @@ class EnvironmentsServiceImpl implements EnvironmentsService
     public function delete(int $id): Collection
     {
         try {
-            $this->checkPermission('delete');
+            $this->checkPermission(ActionsTypes::DELETE);
             $row = $this->getOrFail($id);
             $row->delete();
             return collect(['id'=>$id, 'deleted'=>true]);
@@ -173,7 +192,7 @@ class EnvironmentsServiceImpl implements EnvironmentsService
     public function getById(int $id): Collection
     {
         try {
-            $this->checkPermission('read');
+            $this->checkPermission(ActionsTypes::READ);
             $row = $this->model->newQuery()
                 ->with(['services', 'servicesEnvironments.service', 'configurations.channel'])
                 ->find($id);

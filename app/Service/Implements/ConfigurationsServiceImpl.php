@@ -2,6 +2,8 @@
 
 namespace App\Service\Implements;
 
+use App\Constants\ActionsTypes;
+use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\InternalServiceException;
@@ -41,7 +43,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
     {
         $user = $this->guard->user();
         if (!$user) throw new UnauthorizedServiceException("User not authenticated, must be logged in.");
-        if (!$user->hasPermission('configurations', $action)) {
+        if (!$user->hasPermission(ResourcesTypes::CONFIGURATIONS, $action)) {
             throw new PermissionDeniedServiceException("User does not have permission to {$action} configurations.");
         }
     }
@@ -53,15 +55,23 @@ class ConfigurationsServiceImpl implements ConfigurationsService
         return $row;
     }
 
-    public function getAll(PaginationRequest $data): LengthAwarePaginator|Collection
+    public function getAll(PaginationRequest | null $data, bool $onlyConf = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission('read');
-            $value = $data->validated();
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
+            $this->checkPermission(ActionsTypes::READ);
 
-            $query = $this->model->newQuery()->with(['serviceEnvironment.service.namespace','serviceEnvironment.environment','channel']);
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+            }
+
+            $query = $this->model->newQuery();
+            if (!$onlyConf) {
+                $query->with(['serviceEnvironment.service.namespace','serviceEnvironment.environment','channel']);
+            };
 
             if ($page > 0 && $size > 0) return $this->applyPagination($query, $page, $size);
             return $query->get();
@@ -69,21 +79,25 @@ class ConfigurationsServiceImpl implements ConfigurationsService
         catch (\Throwable $e) { throw new InternalServiceException('Failed to load configurations. Please try again later.'); }
     }
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator|Collection
+    public function search(SearchPaginationRequest | null $data, bool $onlyConf = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission('read');
-            $value  = $data->validated();
-            $term   = trim((string)($value['search'] ?? ''));
-            $page   = (int)($value['page'] ?? 0);
-            $size   = (int)($value['size'] ?? 0);
-            $seId   = $value['service_environment_id'] ?? null;
-            $chId   = $value['channel_id'] ?? null;
+            $this->checkPermission(ActionsTypes::READ);
+            $term   = '';
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+                $term   = trim((string)($value['search'] ?? ''));
+            }
 
-            $query = $this->model->newQuery()->with(['serviceEnvironment.service.namespace','serviceEnvironment.environment','channel']);
+            $query = $this->model->newQuery();
 
-            if ($seId) $query->where('service_environment_id', (int)$seId);
-            if ($chId) $query->where('channel_id', (int)$chId);
+            if (!$onlyConf) {
+                $query->with(['serviceEnvironment.service.namespace','serviceEnvironment.environment','channel']);
+            };
 
             if ($term !== '') {
                 $query->where(function($q) use ($term) {
@@ -103,7 +117,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
     public function create(CreateConfigurationRequest $data): Collection
     {
         try {
-            $this->checkPermission('create');
+            $this->checkPermission(ActionsTypes::CREATE);
             $value = $data->validated();
 
             $row   = $this->model->newQuery()->create([
@@ -126,7 +140,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
     public function update(int $id, UpdateConfigurationRequest $data): Collection
     {
         try {
-            $this->checkPermission('update');
+            $this->checkPermission(ActionsTypes::UPDATE);
             $row = $this->getOrFail($id);
             $value = $data->validated();
 
@@ -154,7 +168,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
     public function delete(int $id): Collection
     {
         try {
-            $this->checkPermission('delete');
+            $this->checkPermission(ActionsTypes::DELETE);
             $row = $this->getOrFail($id);
             $row->delete();
             return collect(['id'=>$id, 'deleted'=>true]);
@@ -166,7 +180,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
     public function getById(int $id): Collection
     {
         try {
-            $this->checkPermission('read');
+            $this->checkPermission(ActionsTypes::READ);
             $row = $this->model->newQuery()
                 ->with(['serviceEnvironment.service.namespace','serviceEnvironment.environment','channel'])
                 ->find($id);

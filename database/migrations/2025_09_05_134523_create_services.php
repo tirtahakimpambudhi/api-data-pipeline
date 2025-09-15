@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('services', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique()->nullable(false);
+            $table->string('name')->nullable(false);
             $table->foreignId('namespace_id')->references('id')->on('namespaces')->onDelete('cascade');
             $table->timestamps();
         });

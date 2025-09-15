@@ -6,11 +6,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import environmentRoutes from '@/routes/environments';
-import { Environment, type BreadcrumbItem, type PaginatedResponse } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { Environment, type BreadcrumbItem, type PaginatedResponse, type Namespace } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import axios from 'axios';
+import { useFlash } from '@/hooks/use-flash';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Environment', href: environmentRoutes.index.url() },
@@ -25,16 +28,28 @@ const formatDateTime = (iso?: string) => {
   }
 };
 
+type Props = {
+    environments: PaginatedResponse<Environment> | Environment[];
+    filters?: { search?: string; page?: number; size?: number };
+    errors?: Record<string, string[]> | null;
+    flash?: {
+        message ?: string;
+        error ?: string;
+        success ?: string;
+    }
+}
+
 export default function environmentPage({
   environments,
   filters,
-}: {
-  environments: PaginatedResponse<Environment> | Environment[];
-  filters?: { search?: string; page?: number; size?: number };
-}) {
+    errors,
+}: Props ) {
   const isPaginated = (val: unknown): val is PaginatedResponse<Environment> =>
-    !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any);
-
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any);
+    const { props } = usePage<Props>();
+    const {resetAll} = useFlash(props?.flash);
+    const [_, setErrors] = useState(props.errors);
   const initialSearch = (filters?.search ?? new URLSearchParams(window.location.search).get('search') ?? '') as string;
   const initialPage = (filters?.page ?? (isPaginated(environments) ? environments.current_page : 1)) as number;
   const initialSize = (filters?.size ?? (isPaginated(environments) ? environments.per_page : 10)) as number;
@@ -66,6 +81,7 @@ export default function environmentPage({
   const totalItems = isPaginated(environments) ? environments.total : (environments as Environment[]).length;
 
   const handleSearch = () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page: 1, size: itemsPerPage };
     if (search) params.search = search;
     router.get(search ? environmentRoutes.search.url() : environmentRoutes.index.url(), params, {
@@ -77,32 +93,57 @@ export default function environmentPage({
 
   const handleReset = () => {
     setSearch('');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page: 1, size: itemsPerPage };
+      resetAll()
+      setErrors({});
     router.get(environmentRoutes.index.url(), params, {
       preserveState: true,
       replace: true,
     });
+
   };
 
-  const handleDelete = useCallback((item: Environment) => {
-    toast.warning(`Delete "${item.name}"?`, {
-      description: 'This action cannot be undone.',
-      action: {
-        label: 'Delete',
-        onClick: () => {
-          router.delete(environmentRoutes.destroy.url({ environment: item.id }), {
-            onSuccess: () => toast.success(`environment "${item.name}" deleted.`),
-            onError: () => toast.error('Failed delete environment.'),
-          });
-        },
-      },
-      cancel: { label: 'Cancel', onClick: () => {} },
-      duration: 8000,
-    });
-  }, []);
+
+    const handleDelete = useCallback((item: Environment) => {
+        toast.warning(`Are you sure you want to delete "${item.name}"?`, {
+            description: 'This action cannot be undone.',
+            action: {
+                label: 'Delete',
+                onClick: async () => {
+                    try {
+                        const req = environmentRoutes.destroy(item.id)
+                        await axios({
+                            url: req.url,
+                            method: req.method,
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        })
+
+                        toast.success(`Environments "${item.name}" has been deleted.`)
+
+                        router.reload({ only: ['environments'] })
+                    } catch (err: any) {
+                        const status = err?.response?.status
+                        const msg = err?.response?.data?.message
+                        console.log(err)
+                        if (status >= 400 && status < 500) {
+                            toast.error(msg)
+                        } else if (status >= 500) {
+                            toast.error(msg || 'Internal server error while deleting.')
+                        } else {
+                            toast.error('Failed to delete the environment.')
+                        }
+                    }
+                },
+            },
+            cancel: { label: 'Cancel', onClick: () => {} },
+            duration: 8000,
+        })
+    }, [])
 
   const onPageChange = (page: number) => {
     setCurrentPage(page);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page, size: itemsPerPage };
     if (search) params.search = search;
     router.get(search ? environmentRoutes.search.url() : environmentRoutes.index.url(), params, {
@@ -111,9 +152,11 @@ export default function environmentPage({
     });
   };
 
+
+
   const columns: ColumnDefinition<Environment>[] = useMemo(
     () => [
-      { header: 'ID', align: 'left', render: (item) => item.id },
+      { header: 'No', align: 'left', render: (item, index) => index+1},
       { header: 'Name', align: 'left', render: (item) => item.name },
       { header: 'Created At', align: 'left', render: (item) => formatDateTime(item.created_at) },
       { header: 'Updated At', align: 'left', render: (item) => formatDateTime(item.updated_at) },
@@ -150,11 +193,27 @@ export default function environmentPage({
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Environment" />
-      <Toaster richColors theme="system" position="top-center" />
+      <Head title="environment" />
+      <Toaster richColors theme="system" position="top-right" />
 
       <div className="flex flex-col gap-4 p-4 lg:p-6">
-        <FilterCard title="Filter Environment" description="Filter environment by name" className="mx-auto w-full max-w-2xl">
+          {(errors && Object.keys(errors).length > 0) && (
+              <Alert variant="destructive" className="mx-auto w-full max-w-3xl">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>
+                      <ul className="list-disc pl-5 space-y-1">
+                          {Object.entries(errors).flatMap(([field, messages]) =>
+                              messages.map((msg :string, i :number) => (
+                                  <li key={`${field}-${i}`}>
+                                      {field}: {msg}
+                                  </li>
+                              ))
+                          )}
+                      </ul>
+                  </AlertDescription>
+              </Alert>
+          )}
+        <FilterCard title="Filter environment" description="Filter environment by name" className="mx-auto w-full max-w-2xl">
           <div className="flex w-full items-center gap-2">
             <Input
               type="text"
@@ -190,6 +249,7 @@ export default function environmentPage({
                 onChange={(e) => {
                   const size = Number(e.target.value);
                   setItemsPerPage(size);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const params: Record<string, any> = { page: 1, size };
                   if (search) params.search = search;
                   router.get(search ? environmentRoutes.search.url() : environmentRoutes.index.url(), params, {

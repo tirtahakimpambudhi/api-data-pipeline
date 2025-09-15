@@ -13,11 +13,11 @@ use Illuminate\Support\Collection;
 
 interface ChannelsService
 {
-    public function getAll(PaginationRequest $data): LengthAwarePaginator | Collection;
+    public function getAll(PaginationRequest | null $data, bool $onlyChannel = false): LengthAwarePaginator | Collection;
 
     public function getById(int $id): Collection;
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator | Collection;
+    public function search(SearchPaginationRequest | null $data, bool $onlyChannel = false): LengthAwarePaginator | Collection;
 
     public function create(CreateChannelRequest $data): Collection;
     public function update(int $id, UpdateChannelRequest $data): Collection;

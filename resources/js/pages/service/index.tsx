@@ -11,6 +11,9 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import axios from 'axios';
+import { useFlash } from '@/hooks/use-flash';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Service', href: serviceRoutes.index.url() },
@@ -25,14 +28,32 @@ const formatDateTime = (iso?: string) => {
   }
 };
 
+type Props = {
+    services: PaginatedResponse<Service> | Service[];
+    filters?: { search?: string; page?: number; size?: number };
+    errors?: Record<string, string[]> | null;
+    flash?: {
+        message ?: string;
+        error ?: string;
+        success ?: string;
+    }
+}
+
 export default function ServicePage({
   services,
   filters,
-}: {
-  services: PaginatedResponse<Service> | Service[];
-  filters?: { search?: string; page?: number; size?: number };
-}) {
+  errors,
+}: Props) {
+
+
+  const { props } = usePage<Props>();
+
+  const {resetAll} = useFlash(props?.flash);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, setErrors] = useState(props.errors);
   const isPaginated = (val: unknown): val is PaginatedResponse<Service> =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any);
 
   const initialSearch = (filters?.search ?? new URLSearchParams(window.location.search).get('search') ?? '') as string;
@@ -59,7 +80,9 @@ export default function ServicePage({
 
   const totalItems = isPaginated(services) ? services.total : (services as Service[]).length;
 
+
   const handleSearch = () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page: 1, size: itemsPerPage };
     if (search) params.search = search;
     router.get(search ? serviceRoutes.search.url() : serviceRoutes.index.url(), params, {
@@ -71,32 +94,55 @@ export default function ServicePage({
 
   const handleReset = () => {
     setSearch('');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page: 1, size: itemsPerPage };
+    setErrors({});
+    resetAll();
     router.get(serviceRoutes.index.url(), params, {
       preserveState: true,
       replace: true,
     });
   };
 
-  const handleDelete = useCallback((item: Service) => {
-    toast.warning(`Delete \"${item.name}\"?`, {
-      description: 'This action cannot be undone.',
-      action: {
-        label: 'Delete',
-        onClick: () => {
-          router.delete(serviceRoutes.destroy.url({ service: item.id }), {
-            onSuccess: () => toast.success(`Service \"${item.name}\" deleted.`),
-            onError: () => toast.error('Failed delte service.'),
-          });
-        },
-      },
-      cancel: { label: 'Cancel', onClick: () => {} },
-      duration: 8000,
-    });
-  }, []);
+    const handleDelete = useCallback((item: Service) => {
+        toast.warning(`Are you sure you want to delete "${item.name}"?`, {
+            description: 'This action cannot be undone.',
+            action: {
+                label: 'Delete',
+                onClick: async () => {
+                    try {
+                        const req = serviceRoutes.destroy(item.id)
+                        await axios({
+                            url: req.url,
+                            method: req.method,
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        })
 
+                        toast.success(`Services "${item.name}" has been deleted.`)
+
+                        router.reload({ only: ['services'] })
+                        // eslint-disable-next-line
+                    } catch (err: any) {
+                        const status = err?.response?.status
+                        const msg = err?.response?.data?.message
+                        console.log(err)
+                        if (status >= 400 && status < 500) {
+                            toast.error(msg)
+                        } else if (status >= 500) {
+                            toast.error(msg || 'Internal server error while deleting.')
+                        } else {
+                            toast.error('Failed to delete the service.')
+                        }
+                    }
+                },
+            },
+            cancel: { label: 'Cancel', onClick: () => {} },
+            duration: 8000,
+        })
+    }, [])
   const onPageChange = (page: number) => {
     setCurrentPage(page);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const params: Record<string, any> = { page, size: itemsPerPage };
     if (search) params.search = search;
     router.get(search ? serviceRoutes.search.url() : serviceRoutes.index.url(), params, {
@@ -107,11 +153,15 @@ export default function ServicePage({
 
   const columns: ColumnDefinition<Service>[] = useMemo(
     () => [
-      { header: 'ID', align: 'left', render: (item) => item.id },
-      { header: 'Name', align: 'left', render: (item) => item.name },
-      { header: 'Namespace', align: 'left', render: (item) => item.namespace?.name ?? '–' },
-      { header: 'Created At', align: 'left', render: (item) => formatDateTime(item.created_at) },
-      { header: 'Updated At', align: 'left', render: (item) => formatDateTime(item.updated_at) },
+      { header: 'No', align: 'left', render: (item, index) => index+1 },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      { header: 'Name', align: 'left', render: (item, _) => item.name },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      { header: 'Namespace', align: 'left', render: (item, _) => item.namespace?.name ?? '–' },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      { header: 'Created At', align: 'left', render: (item, _) => formatDateTime(item.created_at) },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      { header: 'Updated At', align: 'left', render: (item, _) => formatDateTime(item.updated_at) },
       {
         header: 'Actions',
         align: 'right',
@@ -146,9 +196,25 @@ export default function ServicePage({
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Service" />
-      <Toaster richColors theme="system" position="top-center" />
+      <Toaster richColors theme="system" position="top-right" />
 
       <div className="flex flex-col gap-4 p-4 lg:p-6">
+          {(errors && Object.keys(errors).length > 0) && (
+              <Alert variant="destructive" className="mx-auto w-full max-w-3xl">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>
+                      <ul className="list-disc pl-5 space-y-1">
+                          {Object.entries(errors).flatMap(([field, messages]) =>
+                              messages.map((msg :string, i :number) => (
+                                  <li key={`${field}-${i}`}>
+                                      {field}: {msg}
+                                  </li>
+                              ))
+                          )}
+                      </ul>
+                  </AlertDescription>
+              </Alert>
+          )}
         <FilterCard title="Filter Service" description="Filter service by name" className="mx-auto w-full max-w-2xl">
           <div className="flex w-full items-center gap-2">
             <Input
@@ -186,6 +252,7 @@ export default function ServicePage({
                 onChange={(e) => {
                   const size = Number(e.target.value);
                   setItemsPerPage(size);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const params: Record<string, any> = { page: 1, size };
                   if (search) params.search = search;
                   router.get(search ? serviceRoutes.search.url() : serviceRoutes.index.url(), params, {

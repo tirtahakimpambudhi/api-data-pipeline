@@ -2,6 +2,8 @@
 
 namespace App\Service\Implements;
 
+use App\Constants\ActionsTypes;
+use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\InternalServiceException;
@@ -10,8 +12,6 @@ use App\Exceptions\PermissionDeniedServiceException;
 use App\Exceptions\UnauthorizedServiceException;
 use App\Http\Requests\General\PaginationRequest;
 use App\Http\Requests\General\SearchPaginationRequest;
-use App\Http\Requests\Namespaces\CreateNamespaceRequest;
-use App\Http\Requests\Namespaces\UpdateNamespaceRequest;
 use App\Http\Requests\Services\CreateServiceRequest;
 use App\Http\Requests\Services\UpdateServiceRequest;
 use App\Models\Services;
@@ -56,7 +56,7 @@ class ServicesServiceImpl implements ServicesService
             throw new UnauthorizedServiceException("User not authenticated, must be logged in.");
         }
 
-        if (!$user->hasPermission('services', $action)) {
+        if (!$user->hasPermission(ResourcesTypes::SERVICES, $action)) {
             $this->logger->warning("{$user->name} does not have permission to {$action} services");
             throw new PermissionDeniedServiceException("User does not have permission to {$action} services.");
         }
@@ -73,18 +73,26 @@ class ServicesServiceImpl implements ServicesService
     }
 
 
-    public function getAll(PaginationRequest $data): LengthAwarePaginator|Collection
+    public function getAll(PaginationRequest | null $data, bool $onlyService = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission("read");
+            $this->checkPermission(ActionsTypes::READ);
 
             $this->logger->info("Start of getAll services (service layer)");
 
-            $value = $data->validated();
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+            }
 
-            $query = $this->model->newQuery()->with(['configurations', 'namespace', 'servicesEnvironments', 'environments']);
+            $query = $this->model->newQuery();
+
+            if (!$onlyService) {
+                $query->with(['configurations', 'namespace', 'servicesEnvironments', 'environments']);
+            }
 
             if ($page > 0 && $size > 0) {
                 return $this->applyPagination(query: $query, page: $page, size: $size);
@@ -107,7 +115,7 @@ class ServicesServiceImpl implements ServicesService
     public function getById(int $id): Collection
     {
         try {
-            $this->checkPermission("read");
+            $this->checkPermission(ActionsTypes::READ);
 
             $this->logger->info("Start of getById services id={$id} (service layer)");
 
@@ -131,19 +139,29 @@ class ServicesServiceImpl implements ServicesService
         }
     }
 
-    public function search(SearchPaginationRequest $data): LengthAwarePaginator|Collection
+    public function search(SearchPaginationRequest | null $data, bool $onlyService = false): LengthAwarePaginator|Collection
     {
         try {
-            $this->checkPermission("read");
+            $this->checkPermission(ActionsTypes::READ);
 
             $this->logger->info("Start of search services (service layer)");
 
-            $value       = $data->validated();
-            $searchValue = trim((string)($value['search'] ?? ''));
-            $page        = (int)($value['page'] ?? 0);
-            $size        = (int)($value['size'] ?? 0);
+            $searchValue = '';
+            $page = 0;
+            $size = 0;
 
-            $query = $this->model->newQuery()->with(['configurations', 'namespace', 'servicesEnvironments', 'environments']);
+            if ($data !== null) {
+                $value       = $data->validated();
+                $searchValue = trim((string)($value['search'] ?? ''));
+                $page        = (int)($value['page'] ?? 0);
+                $size        = (int)($value['size'] ?? 0);
+            }
+
+            $query = $this->model->newQuery();
+
+            if (!$onlyService) {
+                $query->with(['configurations', 'namespace', 'servicesEnvironments', 'environments']);
+            }
 
             if ($searchValue !== '') {
                 $query->whereLike('name', "%{$searchValue}%");
@@ -166,7 +184,7 @@ class ServicesServiceImpl implements ServicesService
     public function create(CreateServiceRequest $data): Collection
     {
         try {
-            $this->checkPermission("create");
+            $this->checkPermission(ActionsTypes::CREATE);
 
             $this->logger->info("Start of create services (service layer)");
 
@@ -203,7 +221,7 @@ class ServicesServiceImpl implements ServicesService
     public function update(int $id, UpdateServiceRequest $data): Collection
     {
         try {
-            $this->checkPermission("update");
+            $this->checkPermission(ActionsTypes::UPDATE);
 
             $this->logger->info("Start of update services id={$id} (service layer)");
 
@@ -260,7 +278,7 @@ class ServicesServiceImpl implements ServicesService
     public function delete(int $id): Collection
     {
         try {
-            $this->checkPermission("delete");
+            $this->checkPermission(ActionsTypes::DELETE);
 
             $this->logger->info("Start of delete services id={$id} (service layer)");
 

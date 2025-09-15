@@ -2,14 +2,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import environments, { store } from '@/routes/environments';
-import { Head, Link, useForm } from '@inertiajs/react';
-import React from 'react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import React  from 'react';
+import { Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
+
+type Props = {
+    flash?: {
+        message ?: string;
+        error ?: string;
+        success ?: string;
+    }
+};
 
 export default function CreatePage() {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         name: '',
     });
-
+    const {props} = usePage<Props>();
+    const {resetAll} = useFlash(props?.flash);
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post(store.url(), { preserveScroll: true });
@@ -17,6 +28,8 @@ export default function CreatePage() {
 
     const handleReset = () => {
         reset('name');
+        clearErrors();
+        resetAll()
     };
 
     const isDirty = data.name !== '';
@@ -25,6 +38,7 @@ export default function CreatePage() {
     return (
         <AppLayout>
             <Head title="Create Namespace" />
+            <Toaster richColors theme="system" position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-lg rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">

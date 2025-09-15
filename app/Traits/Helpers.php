@@ -1,12 +1,18 @@
 <?php
 
 namespace App\Traits;
+use App\Exceptions\AppServiceException;
 use App\Exceptions\NotFoundServiceException;
 
+use App\Exceptions\PermissionDeniedServiceException;
+use App\Exceptions\UnauthorizedServiceException;
 use Faker\Factory as Faker;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 trait Helpers
@@ -44,7 +50,7 @@ trait Helpers
         return $c->values()->all();
     }
 
-// Traits/Helpers.php
+
     public function applyPagination(Builder $query, int $page, int $size): LengthAwarePaginator
     {
         Log::info("Apply pagination: page={$page}, size={$size}");
@@ -57,5 +63,6 @@ trait Helpers
         Log::info("Successfully fetched page={$page} size={$size}");
         return $paginator;
     }
+
 
 }
