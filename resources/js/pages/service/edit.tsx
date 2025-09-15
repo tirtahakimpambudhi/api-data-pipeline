@@ -8,6 +8,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import React, { useMemo, useRef } from 'react';
 import { toast, Toaster } from 'sonner';
 import { useState, useEffect} from 'react';
+import { useFlash } from '@/hooks/use-flash';
 
 function isPaginated<T>(val: unknown): val is PaginatedResponse<T> {
   return !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any);
@@ -31,11 +32,7 @@ export default function ServiceEditPage({
 }: Props) {
   const nsOptions = useMemo(() => (isPaginated<Namespace>(namespaces) ? namespaces.data : namespaces), [namespaces]);
     const {props} = usePage<Props>();
-
-    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
-    const [successFlash, setSuccessFlash] = useState<string | undefined>(
-        props.flash?.success ?? props.flash?.message
-    );
+    const {resetAll} = useFlash(props?.flash);
   const initial = useRef({
     name: service.name ?? '',
     namespace_id: service.namespace?.id ?? '',
@@ -57,17 +54,9 @@ export default function ServiceEditPage({
     setData('name', initial.current.name);
     setData('namespace_id', initial.current.namespace_id);
     clearErrors();
-    setErrorFlash(undefined);
-    setSuccessFlash(undefined);
+    resetAll()
   };
 
-    useEffect(() => {
-        if (errorFlash) toast.error(errorFlash);
-    }, [errorFlash]);
-
-    useEffect(() => {
-        if (successFlash) toast.info(successFlash);
-    }, [successFlash]);
 
   const isDirty =
     String(data.name) !== String(initial.current.name) ||
