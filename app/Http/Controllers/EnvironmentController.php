@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\ActionsTypes;
+use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\InternalServiceException;
 use App\Http\Requests\General\PaginationRequest;
@@ -95,7 +97,7 @@ class EnvironmentController extends Controller
                 return redirect()->route('login')->with('error', 'User must be logged in.');
             }
 
-            if (!$user->hasPermission("environments", "create")) {
+            if (!$user->hasPermission(ResourcesTypes::ENVIRONMENTS, ActionsTypes::CREATE)) {
                 return redirect()->route('dashboard')->with('error', 'User doesn\'t have permissions to create environment.');
             };
             return Inertia::render('environment/create');
@@ -139,6 +141,10 @@ class EnvironmentController extends Controller
     public function edit(int $id)
     {
         try {
+            $user = Auth::guard('web')->user();
+            if (!$user->hasPermission(ResourcesTypes::ENVIRONMENTS, ActionsTypes::UPDATE)) {
+                return redirect()->route('dashboard')->with('error', 'User doesn\'t have permissions to update environments.');
+            };
             $environment = $this->environmentsService->getById($id);
             return Inertia::render('environment/edit', [
                 'environment' => $environment,
