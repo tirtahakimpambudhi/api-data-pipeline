@@ -5,8 +5,9 @@ import AppLayout from '@/layouts/app-layout';
 import serviceRoutes, { store } from '@/routes/services';
 import { Namespace, PaginatedResponse } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import React, { useEffect, useMemo, useState } from 'react';
-import { toast, Toaster } from 'sonner';
+import React, {  useMemo } from 'react';
+import { Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
 
 function isPaginated<T>(val: unknown): val is PaginatedResponse<T> {
 
@@ -33,10 +34,7 @@ export default function CreatePage({ namespaces }: Props) {
 
   const {props} = usePage<Props>();
 
-  const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
-  const [successFlash, setSuccessFlash] = useState<string | undefined>(
-        props.flash?.success ?? props.flash?.message
-    );
+  const {resetAll} = useFlash(props?.flash);
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     post(store.url(), { preserveScroll: true });
@@ -44,18 +42,10 @@ export default function CreatePage({ namespaces }: Props) {
 
   const handleReset = () => {
     reset('name', 'namespace_id');
-    setErrorFlash(undefined);
-    setSuccessFlash(undefined);
+    resetAll()
     clearErrors();
   };
 
-    useEffect(() => {
-        if (errorFlash) toast.error(errorFlash);
-    }, [errorFlash]);
-
-    useEffect(() => {
-        if (successFlash) toast.info(successFlash);
-    }, [successFlash]);
 
   const isDirty = data.name !== '' || data.namespace_id !== '';
   const isDisabled = processing || !String(data.name).trim() || !String(data.namespace_id).trim();
