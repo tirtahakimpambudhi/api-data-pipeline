@@ -42,7 +42,7 @@ class UpdateServiceEnvironmentRequest extends FormRequest
             'service_id.exists'       => 'service_id not found!',
             'environment_id.integer'  => 'environment_id must be integer!',
             'environment_id.exists'   => 'environment_id not found!',
-            'environment_id.unique'   => 'The pair service_id + environment_id already exists!',
+            'environment_id.unique'   => 'The pair service + environment already exists!',
         ];
     }
 
