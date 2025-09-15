@@ -3,8 +3,8 @@ import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
-import { toast, Toaster } from 'sonner';
-import { useEffect, useState } from 'react';
+import { Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -24,18 +24,8 @@ type Props = {
 export default function Dashboard() {
     const { props } = usePage<Props>();
 
-    const [errorFlash] = useState<string | undefined>(props.flash?.error);
-    const [successFlash] = useState<string | undefined>(
-        props.flash?.success ?? props.flash?.message
-    );
+    useFlash(props?.flash);
 
-    useEffect(() => {
-        if (errorFlash) toast.error(errorFlash);
-    }, [errorFlash]);
-
-    useEffect(() => {
-        if (successFlash) toast.info(successFlash);
-    }, [successFlash]);
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
