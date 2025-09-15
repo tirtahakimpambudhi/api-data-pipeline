@@ -15,6 +15,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios'
 
 import { toast, Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
 
 type ErrorBag = Record<string, string[]>;
 
@@ -77,11 +78,7 @@ export default function NamespacePage({
                                       }: Props) {
     const { props } = usePage<Props>();
 
-
-    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
-    const [successFlash, setSuccessFlash] = useState<string | undefined>(
-        props.flash?.success ?? props.flash?.message
-    );
+    const {resetAll} = useFlash(props?.flash);
 
 
     const initialSearch =
@@ -118,14 +115,7 @@ export default function NamespacePage({
         if (serverError) toast.error(serverError);
     }, [serverError]);
 
-    // Toast flash error/success (fitur local)
-    useEffect(() => {
-        if (errorFlash) toast.error(errorFlash);
-    }, [errorFlash]);
 
-    useEffect(() => {
-        if (successFlash) toast.info(successFlash);
-    }, [successFlash]);
 
     // Sinkronisasi page/size jika server mengirim paginated baru
     useEffect(() => {
@@ -179,8 +169,7 @@ export default function NamespacePage({
 
     const handleReset = () => {
         setSearch('');
-        setErrorFlash(undefined);
-        setSuccessFlash(undefined);
+        resetAll();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const params: Record<string, any> = { page: 1, size: itemsPerPage };
         router.get(namespaceRoutes.index.url(), params, {
@@ -205,8 +194,9 @@ export default function NamespacePage({
 
                         toast.success(`Namespace "${item.name}" has been deleted.`)
 
-                        router.reload({ only: ['namespaces'] })
-                    } catch (err: any) {
+                        router.reload({ only: ['namespaces'] });
+                        // eslint-disable-next-line
+                    } catch (err : any) {
                         const status = err?.response?.status
                         const msg = err?.response?.data?.message
                         console.log(err)
