@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\ActionsTypes;
+use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\InternalServiceException;
@@ -161,6 +163,10 @@ class NamespaceController extends Controller
     public function edit(int $id): Response | RedirectResponse
     {
         try {
+            $user = Auth::guard('web')->user();
+            if (!$user->hasPermission(ResourcesTypes::NAMESPACES, ActionsTypes::UPDATE)) {
+                return redirect()->route('dashboard')->with('error', 'User doesn\'t have permissions to update namespaces.');
+            };
             $namespace = $this->namespacesService->getById($id);
             return Inertia::render('namespace/edit', ['namespace' => $namespace]);
         } catch (AppServiceException $e) {
