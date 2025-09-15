@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\ActionsTypes;
+use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\InternalServiceException;
@@ -13,6 +15,7 @@ use App\Http\Requests\Services\UpdateServiceRequest;
 use App\Service\Contracts\NamespacesService;
 use App\Service\Contracts\ServicesService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -150,6 +153,10 @@ class ServiceController extends Controller
     public function edit(int $id): Response | RedirectResponse
     {
         try {
+            $user = Auth::guard('web')->user();
+            if (!$user->hasPermission(ResourcesTypes::SERVICES, ActionsTypes::UPDATE)) {
+                return redirect()->route('dashboard')->with('error', 'User doesn\'t have permissions to update services.');
+            };
             $namespaces = $this->namespacesService->getAll(null, true);
             $service = $this->servicesService->getById($id);
 
