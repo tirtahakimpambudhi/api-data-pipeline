@@ -3,8 +3,9 @@ import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import environments, { store } from '@/routes/environments';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import React, { useEffect, useState } from 'react';
-import { toast, Toaster } from 'sonner';
+import React  from 'react';
+import { Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
 
 type Props = {
     flash?: {
@@ -19,10 +20,7 @@ export default function CreatePage() {
         name: '',
     });
     const {props} = usePage<Props>();
-    const [errorFlash, setErrorFlash] = useState<string | undefined>(props.flash?.error);
-    const [successFlash, setSuccessFlash] = useState<string | undefined>(
-        props.flash?.success ?? props.flash?.message
-    );
+    const {resetAll} = useFlash(props?.flash);
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post(store.url(), { preserveScroll: true });
@@ -31,19 +29,12 @@ export default function CreatePage() {
     const handleReset = () => {
         reset('name');
         clearErrors();
-        setSuccessFlash(undefined);
-        setErrorFlash(undefined);
+        resetAll()
     };
 
     const isDirty = data.name !== '';
     const isDisabled = processing || !data.name.trim();
-    useEffect(() => {
-        if (errorFlash) toast.error(errorFlash);
-    }, [errorFlash]);
 
-    useEffect(() => {
-        if (successFlash) toast.info(successFlash);
-    }, [successFlash]);
     return (
         <AppLayout>
             <Head title="Create Namespace" />
