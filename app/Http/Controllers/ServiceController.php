@@ -6,7 +6,6 @@ use App\Constants\ActionsTypes;
 use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
-use App\Exceptions\InternalServiceException;
 use App\Exceptions\NotFoundServiceException;
 use App\Http\Requests\General\PaginationRequest;
 use App\Http\Requests\General\SearchPaginationRequest;
