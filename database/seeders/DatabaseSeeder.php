@@ -153,19 +153,8 @@ class DatabaseSeeder extends Seeder
                 ))
                 ->create();
 
-            Users::factory(4)->state(['role_id' => $slaveRoleId[0]])->create();
-            Users::factory(1)->state(['role_id' => $almightyRoleId[0]])->create();
-            Users::factory(1)->state(['role_id' => $almightyRoleId[0], 'email' => 'admin@gmail.com', 'password' => \Illuminate\Support\Facades\Hash::make("t1rt@h4k1m")])->create();
             DB::commit();
 
-//             echo $roles->toJson(JSON_PRETTY_PRINT) . PHP_EOL;
-//             echo $services->toJson(JSON_PRETTY_PRINT) . PHP_EOL;
-//             echo $channels->toJson(JSON_PRETTY_PRINT) . PHP_EOL;
-//             echo $environments->toJson(JSON_PRETTY_PRINT) . PHP_EOL;
-//             echo $servicesEnvironments->toJson(JSON_PRETTY_PRINT) . PHP_EOL;
-//             echo $configurations->toJson(JSON_PRETTY_PRINT) . PHP_EOL;
-//             echo $namespaces->toJson(JSON_PRETTY_PRINT) . PHP_EOL;
-//             echo $permissions->toJson(JSON_PRETTY_PRINT) . PHP_EOL;
 
         } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
             DB::rollBack();
