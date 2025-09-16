@@ -55,7 +55,7 @@ export default function EditPage({ namespace }: Props) {
     return (
         <AppLayout>
             <Head title="Edit Namespace" />
-            <Toaster richColors position="top-right" />
+            <Toaster richColors theme="system"  position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-lg rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <h1 className="text-xl font-semibold">Edit Namespace</h1>
