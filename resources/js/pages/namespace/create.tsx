@@ -46,7 +46,7 @@ export default function CreatePage() {
     return (
         <AppLayout>
             <Head title="Create Namespace" />
-            <Toaster richColors position="top-right" />
+            <Toaster richColors theme="system"  position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-lg rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">
