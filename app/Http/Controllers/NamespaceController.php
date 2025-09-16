@@ -141,9 +141,9 @@ class NamespaceController extends Controller
             if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, request())) {
                 return $redirect;
             }
-            return back()->with('error', $e->getMessage());
+            return redirect()->route('namespaces.index')->with('error', $e->getMessage());
         } catch (Throwable $e) {
-            return back()->with('error', 'Internal server error, please try again edit namespace : ' . $e->getMessage())->withInput();
+            return redirect()->route('namespaces.index')->with('error', 'Internal server error, please try again edit namespace : ' . $e->getMessage())->withInput();
         }
     }
 
