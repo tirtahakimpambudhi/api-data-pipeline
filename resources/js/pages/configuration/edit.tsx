@@ -1,23 +1,29 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import configurationRoute from '@/routes/configurations';
+import configurationRoute from '@/routes/configurations/index';
 import { Channel, Configuration, ServiceEnvironment } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import React, { useRef } from 'react';
+import { useFlash } from '@/hooks/use-flash';
+import { Toaster } from 'sonner';
 
 type PageProps = {
     configuration: Configuration;
     serviceEnvironments: ServiceEnvironment[];
     channels: Channel[];
+    flash?: { message?: string; error?: string, success?: string };
 };
 
 export default function ConfigurationEditPage({ configuration, serviceEnvironments, channels }: PageProps) {
+    const { props } = usePage<PageProps>();
+    const {resetAll} = useFlash(props?.flash);
     const initial = useRef({
         service_environment_id: (configuration as any).service_environment?.id ?? (configuration as any).service_environment_id ?? '',
         channel_id: (configuration as any).channel?.id ?? (configuration as any).channel_id ?? '',
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { data, setData, put, processing, errors, wasSuccessful, reset, clearErrors } = useForm<{
         service_environment_id: string | number | '';
         channel_id: string | number | '';
@@ -38,6 +44,7 @@ export default function ConfigurationEditPage({ configuration, serviceEnvironmen
         setData('service_environment_id', initial.current.service_environment_id);
         setData('channel_id', initial.current.channel_id);
         clearErrors();
+        resetAll()
     };
 
     const isDirty =
@@ -65,6 +72,7 @@ export default function ConfigurationEditPage({ configuration, serviceEnvironmen
     return (
         <AppLayout>
             <Head title="Edit Configuration" />
+            <Toaster richColors theme="system" position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">

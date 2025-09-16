@@ -6,11 +6,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import serviceEnvironmentRoute from '@/routes/service-environments';
-import { PaginatedResponse, ServiceEnvironment, Service, Environment, type BreadcrumbItem } from '@/types';
+import { PaginatedResponse, ServiceEnvironment, type BreadcrumbItem } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
+import axios from 'axios';
+import { numberItemOnPage } from '@/lib/utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Service Environments', href: serviceEnvironmentRoute.index().url },
@@ -25,18 +28,26 @@ const formatDateTime = (iso?: string) => {
   }
 };
 
+
+type PageProps = {
+    serviceEnvironments: PaginatedResponse<ServiceEnvironment> | ServiceEnvironment[];
+    filters?: { search?: string; page?: number; size?: number; };
+    flash?: {
+        message ?: string;
+        error ?: string;
+        success ?: string;
+    }
+}
+
+
 export default function ServiceEnvironmentPage({
   serviceEnvironments,
   filters,
-}: {
-  serviceEnvironments: PaginatedResponse<ServiceEnvironment> | ServiceEnvironment[];
-  services: Service[];
-  environments: Environment[];
-  filters?: { search?: string; page?: number; size?: number; service_id?: number; environment_id?: number };
-}) {
+} : PageProps) {
   const isPaginated = (val: unknown): val is PaginatedResponse<ServiceEnvironment> =>
-    !!val && typeof val === 'object' && 'data' in (val as object) && 'total' in (val as object);
-
+    !!val && typeof val === 'object' && 'data' in (val as any) && 'total' in (val as any);
+    const { props } = usePage<PageProps>();
+    const {resetAll} = useFlash(props?.flash);
   const initialSearch = (filters?.search ?? new URLSearchParams(window.location.search).get('search') ?? '') as string;
   const initialPage = (filters?.page ?? (isPaginated(serviceEnvironments) ? serviceEnvironments.current_page : 1)) as number;
   const initialSize = (filters?.size ?? (isPaginated(serviceEnvironments) ? serviceEnvironments.per_page : 10)) as number;
@@ -73,7 +84,8 @@ export default function ServiceEnvironmentPage({
 
   const handleReset = () => {
     setSearch('');
-    const params: Record<string,number > = { page: 1, size: itemsPerPage };
+    const params: Record<string, any> = { page: 1, size: itemsPerPage };
+    resetAll();
     router.get(serviceEnvironmentRoute.index().url, params, {
       preserveState: true,
       replace: true,
@@ -81,23 +93,43 @@ export default function ServiceEnvironmentPage({
   };
 
   const handleDelete = useCallback((item: ServiceEnvironment) => {
-    toast.warning(`Delete relation  ${item.name}?`, {
-      description: 'This action cannot be undone.',
-      action: {
-        label: 'Delete',
-        onClick: () => {
-          router.delete(serviceEnvironmentRoute.destroy({ service_environment: item.id }).url, {
-            onSuccess: () => toast.success(`Relation deleted.`),
-            onError: () => toast.error('Failed delete relation.'),
-          });
-        },
-      },
-      cancel: { label: 'Cancel', onClick: () => {} },
-      duration: 8000,
-    });
-  }, []);
+        toast.warning(`Are you sure you want to delete "${item.name}"?`, {
+            description: 'This action cannot be undone.',
+            action: {
+                label: 'Delete',
+                onClick: async () => {
+                    try {
+                        const req = serviceEnvironmentRoute.destroy(item.id)
+                        await axios({
+                            url: req.url,
+                            method: req.method,
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        })
 
-  const onPageChange = (page: number) => {
+                        toast.success(`Service Environment "${item.name}" has been deleted.`)
+
+                        router.reload({ only: ['serviceEnvironments'] })
+                    } catch (err: any) {
+                        const status = err?.response?.status
+                        const msg = err?.response?.data?.message
+                        console.log(err)
+                        if (status >= 400 && status < 500) {
+                            toast.error(msg)
+                        } else if (status >= 500) {
+                            toast.error(msg || 'Internal server error while deleting.')
+                        } else {
+                            toast.error('Failed to delete the Service Environment.')
+                        }
+                    }
+                },
+            },
+            cancel: { label: 'Cancel', onClick: () => {} },
+            duration: 8000,
+        })
+    }, [])
+
+
+    const onPageChange = (page: number) => {
     setCurrentPage(page);
     const params: Record<string, string | number> = { page, size: itemsPerPage };
     if (search) params.search = search;
@@ -107,9 +139,18 @@ export default function ServiceEnvironmentPage({
     });
   };
 
-  const columns: ColumnDefinition<ServiceEnvironment>[] = useMemo(
+    const numberItem = numberItemOnPage(
+        isPaginated(serviceEnvironments)
+            ? serviceEnvironments.current_page
+            : currentPage,
+        isPaginated(serviceEnvironments)
+            ? serviceEnvironments.per_page
+            : itemsPerPage,
+    );
+
+    const columns: ColumnDefinition<ServiceEnvironment>[] = useMemo(
     () => [
-      { header: 'ID', align: 'left', render: (item) => item.id },
+      { header: 'No', align: 'left', render: (item, index) => numberItem(index)},
       { header: 'Service', align: 'left', render: (item) => item.service?.name ?? '–' },
       { header: 'Environment', align: 'left', render: (item) => item.environment?.name ?? '–' },
       { header: 'Created At', align: 'left', render: (item) => formatDateTime(item.created_at) },
@@ -142,13 +183,13 @@ export default function ServiceEnvironmentPage({
         ),
       },
     ],
-    [handleDelete]
+    [numberItem, handleDelete]
   );
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Service Environments" />
-      <Toaster richColors theme="system" position="top-center" />
+      <Toaster richColors theme="system" position="top-right" />
 
       <div className="flex flex-col gap-4 p-4 lg:p-6">
         <FilterCard title="Filter Service Environment" description="Filter by service or environment" className="mx-auto w-full max-w-2xl">

@@ -33,7 +33,7 @@ class CreateServiceEnvironmentRequest extends FormRequest
             'environment_id.required' => 'environment_id is required!',
             'environment_id.integer'  => 'environment_id must be integer!',
             'environment_id.exists'   => 'environment_id not found!',
-            'environment_id.unique'   => 'The pair service_id + environment_id already exists!',
+            'environment_id.unique'   => 'The pair service + environment already exists!',
         ];
     }
 }

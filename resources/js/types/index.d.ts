@@ -84,6 +84,7 @@ export interface ServiceEnvironment {
 
 export interface Configuration {
     id: number;
+    name: string;
     service_environment_id: number;
     channel_id: number;
     service_environment?: ServiceEnvironment;

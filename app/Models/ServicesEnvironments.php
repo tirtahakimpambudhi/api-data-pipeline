@@ -37,7 +37,7 @@ class ServicesEnvironments extends Model
                 $this->relationLoaded('environment') &&
                 $this->environment
             ) {
-                return "{$this->service->namespace->name}.{$this->service->name}-{$this->environment->name}";
+                return "{$this->service->namespace->name}.{$this->service->name}[{$this->environment->name}]";
             }
 
             return '';

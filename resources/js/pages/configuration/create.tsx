@@ -1,10 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import configurationRoute from '@/routes/configurations';
+import configurationRoute from '@/routes/configurations/index';
 import { Channel, ServiceEnvironment } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import React from 'react';
+import { useFlash } from '@/hooks/use-flash';
+import { Toaster } from 'sonner';
 
 type PageProps = {
     serviceEnvironments: ServiceEnvironment[];
@@ -15,7 +17,7 @@ type FlashProps = { flash?: { message?: string; error?: string } };
 
 export default function CreateConfigurationPage({ serviceEnvironments, channels }: PageProps) {
     const { flash } = usePage<FlashProps>().props;
-
+    const {resetAll} = useFlash(flash);
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm<{
         service_environment_id: string | number | '';
         channel_id: string | number | '';
@@ -34,6 +36,7 @@ export default function CreateConfigurationPage({ serviceEnvironments, channels 
     const handleReset = () => {
         reset('service_environment_id', 'channel_id');
         clearErrors();
+        resetAll()
     };
 
     const isDirty = data.service_environment_id !== '' || data.channel_id !== '';
@@ -53,11 +56,12 @@ export default function CreateConfigurationPage({ serviceEnvironments, channels 
     return (
         <AppLayout>
             <Head title="Create Configuration" />
+            <Toaster richColors theme="system" position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">
                         <h1 className="text-xl font-semibold">Create Configuration</h1>
-                        
+
                     </div>
 
                     {flash?.error && (

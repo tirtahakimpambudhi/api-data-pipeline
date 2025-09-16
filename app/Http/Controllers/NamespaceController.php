@@ -6,10 +6,7 @@ use App\Constants\ActionsTypes;
 use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
-use App\Exceptions\InternalServiceException;
 use App\Exceptions\NotFoundServiceException;
-use App\Exceptions\PermissionDeniedServiceException;
-use App\Exceptions\UnauthorizedServiceException;
 use App\Http\Requests\General\PaginationRequest;
 use App\Http\Requests\General\SearchPaginationRequest;
 use App\Http\Requests\Namespaces\CreateNamespaceRequest;
@@ -18,7 +15,6 @@ use App\Http\Requests\Namespaces\UpdateNamespaceRequest;
 use App\Service\Contracts\NamespacesService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -50,23 +46,9 @@ class NamespaceController extends Controller
             if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, $request)) {
                 return $redirect;
             }
-            $resp = Inertia::render('namespace/index', [
-                'namespaces' => $this->emptyPaginated(),
-                'filters'    => $request->all(['page', 'size']),
-                'errors'     => method_exists($e, 'toMessageBag') ? $e->toMessageBag()->toArray() : ['error' => [$e->getMessage()]],
-                'serverError'=> $e->getMessage(),
-                'statusCode' =>  $e->getCode(),
-            ]);
-            return $this->inertiaWithStatus($resp,  $e->getCode());
+            return redirect()->route('dashboard')->with('error', $e->getMessage());
         } catch (Throwable $e) {
-            $resp = Inertia::render('namespace/index', [
-                'namespaces' => $this->emptyPaginated(),
-                'filters'    => $request->all(['page', 'size']),
-                'errors'     => ['error' => ['Internal server error.']],
-                'serverError'=> config('app.debug') ? $e->getMessage() : 'Internal server error.',
-                'statusCode' => 500,
-            ]);
-            return $this->inertiaWithStatus($resp, 500);
+            return redirect()->route('dashboard')->with('error', 'Internal server error');
         }
     }
 
@@ -86,23 +68,9 @@ class NamespaceController extends Controller
             if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, $request)) {
                 return $redirect;
             }
-            $resp = Inertia::render('namespace/index', [
-                'namespaces' => $this->emptyPaginated(),
-                'filters'    => $request->all(['search', 'page', 'size']),
-                'errors'     => method_exists($e, 'toMessageBag') ? $e->toMessageBag()->toArray() : ['error' => [$e->getMessage()]],
-                'serverError'=> $e->getMessage(),
-                'statusCode' => $e->getCode(),
-            ]);
-            return $this->inertiaWithStatus($resp,  $e->getCode());
+            return redirect()->route('dashboard')->with('error', $e->getMessage());
         } catch (Throwable $e) {
-            $resp = Inertia::render('namespace/index', [
-                'namespaces' => $this->emptyPaginated(),
-                'filters'    => $request->all(['search', 'page', 'size']),
-                'errors'     => ['error' => ['Internal server error.']],
-                'serverError'=> config('app.debug') ? $e->getMessage() : 'Internal server error.',
-                'statusCode' => 500,
-            ]);
-            return $this->inertiaWithStatus($resp, 500);
+            return redirect()->route('dashboard')->with('error', 'Internal server error');
         }
     }
 

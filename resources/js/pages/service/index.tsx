@@ -14,6 +14,7 @@ import { toast, Toaster } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import axios from 'axios';
 import { useFlash } from '@/hooks/use-flash';
+import { numberItemOnPage } from '@/lib/utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Service', href: serviceRoutes.index.url() },
@@ -150,10 +151,17 @@ export default function ServicePage({
       replace: true,
     });
   };
-
+    const numberItem = numberItemOnPage(
+        isPaginated(services)
+            ? services.current_page
+            : currentPage,
+        isPaginated(services)
+            ? services.per_page
+            : itemsPerPage,
+    );
   const columns: ColumnDefinition<Service>[] = useMemo(
     () => [
-      { header: 'No', align: 'left', render: (item, index) => index+1 },
+      { header: 'No', align: 'left', render: (item, index) => numberItem(index) },
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       { header: 'Name', align: 'left', render: (item, _) => item.name },
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -190,7 +198,7 @@ export default function ServicePage({
         ),
       },
     ],
-    [handleDelete]
+    [numberItem,handleDelete]
   );
 
   return (

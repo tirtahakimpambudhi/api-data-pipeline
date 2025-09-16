@@ -5,12 +5,15 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
-import configurationRoute from '@/routes/configurations';
+import configurationRoute from '@/routes/configurations/index';
 import { PaginatedResponse, Configuration, BreadcrumbItem, Filters } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
+import axios from 'axios';
+import { numberItemOnPage } from '@/lib/utils';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Configurations', href: configurationRoute.index().url }];
 
@@ -38,7 +41,7 @@ export type PageProps = {
 };
 
 export type InertiaPageProps = {
-  flash?: { message?: string; error?: string };
+  flash?: { message?: string; error?: string, success?: string };
 };
 
 
@@ -50,10 +53,7 @@ function buildUrl(base: string, params: Record<string, string | number>) {
 export default function ConfigurationIndexPage({ configurations, filters }: PageProps) {
   const { flash } = usePage<InertiaPageProps>().props;
 
-  useEffect(() => {
-    if (flash?.message) toast.success(flash.message);
-    if (flash?.error) toast.error(flash.error);
-  }, [flash?.message, flash?.error]);
+  const { resetAll } = useFlash(flash);
 
   const [search, setSearch] = useState<string>(() =>
     (filters?.search ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('search') ?? '' : '')) as string
@@ -125,36 +125,63 @@ export default function ConfigurationIndexPage({ configurations, filters }: Page
   const handleReset = () => {
     setSearch('');
     setCurrentPage(1);
+    resetAll();
     const params = { page: 1, size: itemsPerPage } as Record<string, string | number>;
     const urlWithQuery = buildUrl(configurationRoute.index().url, params);
     router.visit(urlWithQuery, { preserveState: true, preserveScroll: true, replace: true });
   };
 
-  const handleDelete = useCallback((item: Configuration) => {
-    toast.warning(`Delete configuration ID ${item.id}?`, {
-      description: 'This action cannot be undone.',
-      action: {
-        label: 'Hapus',
-        onClick: () => {
-          router.delete(configurationRoute.destroy({ configuration: item.id }).url, {
-            onSuccess: () => toast.success('Configuration deleted.'),
-            onError: () => toast.error('Failed to delete configuration.'),
-          });
-        },
-      },
-      cancel: { label: 'Cancel', onClick: () => {} },
-      duration: 8000,
-    });
-  }, []);
+    const handleDelete = useCallback((item: Configuration) => {
+        toast.warning(`Are you sure you want to delete "${item.name}"?`, {
+            description: 'This action cannot be undone.',
+            action: {
+                label: 'Delete',
+                onClick: async () => {
+                    try {
+                        const req = configurationRoute.destroy(item.id)
+                        await axios({
+                            url: req.url,
+                            method: req.method,
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        })
+
+                        toast.success(`Configuration "${item.name}" has been deleted.`)
+
+                        router.reload({ only: ['configurations'] })
+                    } catch (err: any) {
+                        const status = err?.response?.status
+                        const msg = err?.response?.data?.message
+                        console.log(err)
+                        if (status >= 400 && status < 500) {
+                            toast.error(msg)
+                        } else if (status >= 500) {
+                            toast.error(msg || 'Internal server error while deleting.')
+                        } else {
+                            toast.error('Failed to delete the Configuration.')
+                        }
+                    }
+                },
+            },
+            cancel: { label: 'Cancel', onClick: () => {} },
+            duration: 8000,
+        })
+    }, [])
 
   const onPageChange = (page: number) => {
     setCurrentPage(page);
     fetchList(page);
   };
-
+    const numberItem = numberItemOnPage(
+        isPaginated(configurations)
+            ? configurations.current_page
+            : currentPage,
+        isPaginated(configurations)
+            ? configurations.per_page
+            : itemsPerPage,
+    );
   const columns: ColumnDefinition<Configuration>[] = useMemo(
     () => [
-      { header: 'ID', align: 'left', render: (item) => item.id },
+      { header: 'No', align: 'left', render: (item, index) => numberItem(index) },
       {
         header: 'Service',
         align: 'left',
@@ -200,13 +227,13 @@ export default function ConfigurationIndexPage({ configurations, filters }: Page
         ),
       },
     ],
-    [handleDelete]
+    [numberItem,handleDelete]
   );
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Configuration" />
-      <Toaster richColors theme="system" position="top-center" />
+      <Toaster richColors theme="system" position="top-right" />
 
       <div className="flex flex-col gap-4 p-4 lg:p-6">
         <FilterCard

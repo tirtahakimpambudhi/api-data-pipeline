@@ -3,14 +3,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppLayout from '@/layouts/app-layout';
 import serviceEnvironmentRoute from '@/routes/service-environments';
 import { Environment, Service } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import React from 'react';
+import { useFlash } from '@/hooks/use-flash';
+import { Toaster } from 'sonner';
 
-export default function CreateServiceEnvironmentPage({ services, environments }: { services: Service[]; environments: Environment[] }) {
+type PageProps = {
+    services: Service[];
+    environments: Environment[];
+    flash?: { message?: string; error?: string, success?: string };
+};
+
+export default function CreateServiceEnvironmentPage({ services, environments }: PageProps) {
     const { data, setData, post, processing, errors, reset } = useForm({
         service_id: '' as string | number | '',
         environment_id: '' as string | number | '',
     });
+
+    const { props } = usePage<PageProps>();
+    const {resetAll} = useFlash(props?.flash);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -19,6 +30,7 @@ export default function CreateServiceEnvironmentPage({ services, environments }:
 
     const handleReset = () => {
         reset('service_id', 'environment_id');
+        resetAll();
     };
 
     const isDirty = data.service_id !== '' || data.environment_id !== '';
@@ -27,6 +39,7 @@ export default function CreateServiceEnvironmentPage({ services, environments }:
     return (
         <AppLayout>
             <Head title="Create Service Environment" />
+            <Toaster richColors theme="system" position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">

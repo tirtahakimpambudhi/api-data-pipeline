@@ -41,20 +41,9 @@ class ChannelController extends Controller
             if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, $request)) {
                 return $redirect;
             }
-            $resp = Inertia::render('channel/index', [
-                'channels' => [],
-                'filters' => $request->all(['page', 'size']),
-                'errors' => method_exists($e, 'toMessageBag') ? $e->toMessageBag()->toArray() : ['error' => [$e->getMessage()]],
-            ]);
-            return $this->inertiaWithStatus($resp, $e->getCode());
-        } catch (\Throwable $e) {
-            $resp = Inertia::render('channel/index', [
-                'channels' => [],
-                'filters' => $request->all(['page', 'size']),
-                'errors' =>  ['error' => 'Internal server error'],
-                ]
-            );
-            return $this->inertiaWithStatus($resp, 500);
+            return redirect()->route('dashboard')->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            return redirect()->route('dashboard')->with('error', 'Internal server error');
         }
     }
 
@@ -71,20 +60,9 @@ class ChannelController extends Controller
             if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, $request)) {
                 return $redirect;
             }
-            $resp = Inertia::render('channel/index', [
-                'channels' => [],
-                'filters' => $request->all(['search','page', 'size']),
-                'errors' => method_exists($e, 'toMessageBag') ? $e->toMessageBag()->toArray() : ['error' => [$e->getMessage()]],
-            ]);
-            return $this->inertiaWithStatus($resp, $e->getCode());
-        } catch (\Throwable $e) {
-            $resp = Inertia::render('channel/index', [
-                    'channels' => [],
-                    'filters' => $request->all(['search','page', 'size']),
-                    'errors' =>  ['error' => 'Internal server error'],
-                ]
-            );
-            return $this->inertiaWithStatus($resp, 500);
+            return redirect()->route('dashboard')->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            return redirect()->route('dashboard')->with('error', 'Internal server error');
         }
     }
 
