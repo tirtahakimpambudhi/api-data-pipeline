@@ -127,9 +127,11 @@ class ServiceEnvironmentController extends Controller
             };
             $services = $this->servicesService->getAll(null, true);
             $envs = $this->environmentsService->getAll(null, true);
+            $svcEnv = $this->serviceEnvironmentsService->getById($id);
             return Inertia::render('service-environment/edit', [
                 'services' => $services,
                 'environments' => $envs,
+                'serviceEnvironment' => $svcEnv,
             ]);
         } catch (AppServiceException $e) {
             if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, request())) {
