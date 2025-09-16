@@ -71,7 +71,7 @@ export default function ServiceEditPage({
       <div className="p-4 lg:p-6">
         <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
           <h1 className="text-xl font-semibold">Edit Service</h1>
-          <p className="mb-4 text-muted-foreground">Perbarui detail di bawah ini.</p>
+          <p className="mb-4 text-muted-foreground">Update this detail below.</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -97,7 +97,7 @@ export default function ServiceEditPage({
                 disabled={processing}
               >
                 <SelectTrigger className={errors.namespace_id ? 'border-destructive' : ''}>
-                  <SelectValue placeholder="Pilih namespace" />
+                  <SelectValue placeholder="Select namespace" />
                 </SelectTrigger>
                 <SelectContent>
                   {nsOptions.map((ns) => (

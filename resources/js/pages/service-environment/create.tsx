@@ -46,7 +46,7 @@ export default function CreateServiceEnvironmentPage({ services, environments }:
                         <h1 className="text-xl font-semibold">Create Service Environment</h1>
                     </div>
 
-                    <p className="mb-4 text-muted-foreground">Create a new service environment.</p>
+                    <p className="mb-4 text-muted-foreground">Fill in the details below.</p>
 
                     <form id="create-service-environment-form" onSubmit={handleSubmit} className="space-y-4">
                         <div>

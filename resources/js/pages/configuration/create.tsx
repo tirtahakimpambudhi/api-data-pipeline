@@ -71,7 +71,7 @@ export default function CreateConfigurationPage({ serviceEnvironments, channels 
                     )}
 
                     <p className="mb-4 text-muted-foreground">
-                        Create a new configuration by selecting a service environment and a channel.
+                        Fill in this detail below.
                     </p>
 
                     <form id="create-configuration-form" onSubmit={handleSubmit} className="space-y-4">

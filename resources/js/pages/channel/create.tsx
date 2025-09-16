@@ -43,14 +43,6 @@ export default function CreatePage() {
                 <div className="mx-auto max-w-lg rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">
                         <h1 className="text-xl font-semibold">Create New channel</h1>
-                        <div className="flex gap-2">
-                            <Button type="button" variant="outline" onClick={handleReset} disabled={!isDirty || processing}>
-                                Reset
-                            </Button>
-                            <Button type="submit" form="create-form" disabled={isDisabled}>
-                                {processing ? 'Saving...' : 'Save'}
-                            </Button>
-                        </div>
                     </div>
 
                     <p className="mb-4 text-muted-foreground">Fill in the details below.</p>
@@ -71,10 +63,18 @@ export default function CreatePage() {
                             {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name}</p>}
                         </div>
 
-                        <div className="flex items-center justify-end">
+                        <div className="flex items-center justify-between">
                             <Button asChild variant="ghost">
                                 <Link href={channels.index.url()}>Cancel</Link>
                             </Button>
+                            <div className="flex gap-2">
+                                <Button type="button" variant="outline" onClick={handleReset} disabled={!isDirty || processing}>
+                                    Reset
+                                </Button>
+                                <Button type="submit" disabled={isDisabled}>
+                                    {processing ? 'Saving...' : 'Save'}
+                                </Button>
+                            </div>
                         </div>
                     </form>
                 </div>

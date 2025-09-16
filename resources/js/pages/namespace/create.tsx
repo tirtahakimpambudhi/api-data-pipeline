@@ -1,12 +1,12 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { useFlash } from '@/hooks/use-flash';
 import AppLayout from '@/layouts/app-layout';
 import namespaces, { store } from '@/routes/namespaces';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import React, { useEffect, useMemo, useState } from 'react';
-import { toast, Toaster } from 'sonner';
-import { useFlash } from '@/hooks/use-flash';
+import React, { useMemo, useState } from 'react';
+import { Toaster } from 'sonner';
 
 type PageProps = {
     flash?: { error?: string; success?: string };
@@ -16,12 +16,11 @@ type PageProps = {
 export default function CreatePage() {
     const { props } = usePage<PageProps>();
 
-    const { data, setData, post, processing, errors, reset, wasSuccessful,clearErrors } = useForm({
+    const { data, setData, post, processing, errors, reset, wasSuccessful, clearErrors } = useForm({
         name: '',
     });
-    const {resetAll} = useFlash(props?.flash);
+    const { resetAll } = useFlash(props?.flash);
     const [serverError, setServerError] = useState<string | null>(props.serverError ?? null);
-
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -30,8 +29,8 @@ export default function CreatePage() {
 
     const handleReset = () => {
         reset('name');
-        clearErrors()
-        resetAll()
+        clearErrors();
+        resetAll();
         setServerError(null);
     };
 
@@ -52,21 +51,13 @@ export default function CreatePage() {
                 <div className="mx-auto max-w-lg rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">
                         <h1 className="text-xl font-semibold">Create New Namespace</h1>
-                        <div className="flex gap-2">
-                            <Button type="button" variant="outline" onClick={handleReset} disabled={!isDirty || processing}>
-                                Reset
-                            </Button>
-                            <Button type="submit" form="create-form" disabled={isDisabled}>
-                                {processing ? 'Saving...' : 'Save'}
-                            </Button>
-                        </div>
                     </div>
 
                     {topErrorMessages.length > 0 && (
                         <Alert variant="destructive" className="mb-4">
                             <AlertTitle>Error</AlertTitle>
                             <AlertDescription>
-                                <ul className="list-disc pl-5 space-y-1">
+                                <ul className="list-disc space-y-1 pl-5">
                                     {topErrorMessages.map((msg, i) => (
                                         <li key={i}>{msg}</li>
                                     ))}
@@ -90,25 +81,25 @@ export default function CreatePage() {
                                 className={errors.name ? 'border-destructive' : ''}
                                 disabled={processing}
                             />
-                            {/* Tampilkan error validasi di bawah input */}
-                            {errors.name && (
-                                <p className="mt-1 text-sm text-destructive">{errors.name}</p>
-                            )}
+                            {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name}</p>}
                         </div>
 
-                        <div className="flex items-center justify-end">
+                        <div className="flex items-center justify-between">
                             <Button asChild variant="ghost">
                                 <Link href={namespaces.index.url()}>Cancel</Link>
                             </Button>
+                            <div className="flex gap-2">
+                                <Button type="button" variant="outline" onClick={handleReset} disabled={!isDirty || processing}>
+                                    Reset
+                                </Button>
+                                <Button type="submit" disabled={isDisabled}>
+                                    {processing ? 'Saving...' : 'Save'}
+                                </Button>
+                            </div>
                         </div>
 
-                        {wasSuccessful && (
-                            <p className="text-sm text-green-600 dark:text-green-400">
-                                Saved successfully.
-                            </p>
-                        )}
+                        {wasSuccessful && <p className="text-sm text-green-600 dark:text-green-400">Saved successfully.</p>}
                     </form>
-
                 </div>
             </div>
         </AppLayout>

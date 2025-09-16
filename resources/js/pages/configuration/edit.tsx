@@ -80,7 +80,7 @@ export default function ConfigurationEditPage({ configuration, serviceEnvironmen
                     </div>
 
                     <p className="mb-4 text-muted-foreground">
-                        Update this configuration's service environment or channel as needed.
+                        Update the details below.
                     </p>
 
                     <form id="edit-configuration-form" onSubmit={handleSubmit} className="space-y-4">
