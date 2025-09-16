@@ -292,7 +292,7 @@ export default function NamespacePage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Namespace" />
-            <Toaster richColors position="top-right" />
+            <Toaster richColors theme="system"  position="top-right" />
 
             <div className="flex flex-col gap-4 p-4 lg:p-6">
                 {/* Alert error dari server (ErrorBag) — fitur local */}
