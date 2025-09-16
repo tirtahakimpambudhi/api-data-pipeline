@@ -83,21 +83,23 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
     {
         try {
             $this->checkPermission(ActionsTypes::READ);
-            $value = $data->validated();
-            $term  = trim((string)($value['search'] ?? ''));
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
 
-            $serviceId = $value['service_id'] ?? null;
-            $envId     = $value['environment_id'] ?? null;
 
-            $query = $this->model->newQuery()->with(['service.namespace','environment','configurations.channel']);
-
-            if ($serviceId) {
-                $query->where('service_id', (int)$serviceId);
+            $term   = '';
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+                $term   = trim((string)($value['search'] ?? ''));
             }
-            if ($envId) {
-                $query->where('environment_id', (int)$envId);
+
+
+            $query = $this->model->newQuery();
+
+            if (!$onlySvcEnv) {
+                $query->with(['service.namespace','environment','configurations.channel']);
             }
 
             if ($term !== '') {
