@@ -59,11 +59,18 @@ class ChannelsServiceImpl implements ChannelsService
     {
         try {
             $this->checkPermission(ActionsTypes::READ);
-            $value = $data->validated();
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+            }
 
-            $query = $this->model->newQuery()->with(['servicesEnvironments','configurations']);
+            $query = $this->model->newQuery();
+            if (!$onlyChannel) {
+                $query->with(['servicesEnvironments','configurations']);
+            }
 
             if ($page > 0 && $size > 0) return $this->applyPagination($query, $page, $size);
             return $query->get();
@@ -75,12 +82,21 @@ class ChannelsServiceImpl implements ChannelsService
     {
         try {
             $this->checkPermission(ActionsTypes::READ);
-            $value = $data->validated();
-            $term  = trim((string)($value['search'] ?? ''));
-            $page  = (int)($value['page'] ?? 0);
-            $size  = (int)($value['size'] ?? 0);
 
-            $query = $this->model->newQuery()->with(['servicesEnvironments','configurations']);
+            $term   = '';
+            $page = 0;
+            $size = 0;
+            if ($data !== null) {
+                $value = $data->validated();
+                $page  = (int)($value['page'] ?? 0);
+                $size  = (int)($value['size'] ?? 0);
+                $term   = trim((string)($value['search'] ?? ''));
+            }
+
+            $query = $this->model->newQuery();
+            if (!$onlyChannel) {
+                $query->with(['servicesEnvironments','configurations']);
+            }
             if ($term !== '') $query->whereLike('name', "%{$term}%");
 
             if ($page > 0 && $size > 0) return $this->applyPagination($query, $page, $size);
