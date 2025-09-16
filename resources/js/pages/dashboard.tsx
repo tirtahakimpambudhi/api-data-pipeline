@@ -33,7 +33,6 @@ export default function Dashboard({ data }: Props) {
     const { auth } = usePage<SharedData>().props
     useFlash(props?.flash)
 
-    // ---- Safety defaults ----
     const namespaces: Namespace[] = data?.namespaces ?? []
     const services: Service[] = data?.services ?? []
     const serviceEnvs: ServiceEnvironment[] = data?.servicesEnvironments ?? []
@@ -41,32 +40,23 @@ export default function Dashboard({ data }: Props) {
     const channels: Channel[] = data?.channels ?? []
     const configurations: Configuration[] = data?.configurations ?? []
 
-    // ---- Counts ----
     const nsCount = namespaces.length
     const svcCount = services.length
     const envCount = environments.length
     const chCount = channels.length
     const cfgCount = configurations.length
     const seCount = serviceEnvs.length
-
-    const hasAnyData =
-        nsCount > 0 || svcCount > 0 || envCount > 0 || chCount > 0 || cfgCount > 0 || seCount > 0
-
     const showKpiConfigurations = cfgCount > 0
     const showKpiServices = svcCount > 0
     const showKpiEnvironments = envCount > 0
     const showKpiChannels = chCount > 0
     const showKpiNamespaces = nsCount > 0
 
-    // Coverage butuh: environments>0, services>0, configurations>0, serviceEnvs>0
     const hasCoverageData = envCount > 0 && svcCount > 0 && cfgCount > 0 && seCount > 0
 
 
-    // Role awareness
     const roleName = (auth as any)?.user?.role?.name?.toLowerCase?.() ?? 'almighty'
-    const isAlmighty = roleName === 'almighty'
 
-    // Coverage per Environment (compute only when visible)
     const coverageByEnv = useMemo(() => {
         if (!hasCoverageData) return [] as { env: Environment; coverage: number }[]
         const byEnv: { env: Environment; coverage: number }[] = []
@@ -82,42 +72,21 @@ export default function Dashboard({ data }: Props) {
         return byEnv
     }, [hasCoverageData, environments, configurations, serviceEnvs, svcCount])
 
-    // Alerts: cari env "prod" ATAU "production"
-    const prodEnv =
-        environments.find((e) => e.name?.toLowerCase() === 'prod') ??
-        environments.find((e) => e.name?.toLowerCase() === 'production')
-
-    // Alerts butuh: prodEnv ada, services>0, configurations>0, serviceEnvs>0
-    const canShowAlerts = !!prodEnv && svcCount > 0 && cfgCount > 0 && seCount > 0
-
-    const prodGaps = useMemo(() => {
-        if (!canShowAlerts || !prodEnv) return [] as string[]
-        const svcSet = new Set<number>()
-        for (const cfg of configurations) {
-            const se = serviceEnvs.find((x) => x.id === cfg.service_environment_id)
-            if (se?.environment_id === prodEnv.id) svcSet.add(se.service_id)
-        }
-        return services.filter((s) => !svcSet.has(s.id)).map((s) => s.name)
-    }, [canShowAlerts, configurations, serviceEnvs, prodEnv, services])
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <Toaster richColors theme="system" position="top-right" />
 
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
-                {/* Header */}
                 <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-                            Selamat datang, {(auth as any)?.user?.name ?? 'Pengguna'} 👋
+                            Welcome Back, {(auth as any)?.user?.name ?? 'User'} 👋
                         </h1>
-                        <p className="text-sm text-muted-foreground">Ringkasan singkat sistem — klik untuk masuk ke halaman detail.</p>
+                        <p className="text-sm text-muted-foreground">Brief system summary — click to access detailed pages.</p>
                     </div>
-                    <Badge variant="secondary" className="capitalize">Role: {isAlmighty ? 'almighty' : 'slave'}</Badge>
                 </div>
 
-                {/* Row 1: KPIs — hanya render kartu yang ada datanya */}
                 {(showKpiConfigurations || (showKpiServices || showKpiEnvironments || showKpiChannels || showKpiNamespaces)) && (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                         {showKpiConfigurations && (
@@ -141,7 +110,6 @@ export default function Dashboard({ data }: Props) {
                     </div>
                 )}
 
-                {/* Row 2: Coverage — render HANYA jika semua data pendukung ada */}
                 {hasCoverageData && (
                     <Card className="relative overflow-hidden">
                         <div className="absolute inset-0 opacity-[0.06]">
@@ -149,7 +117,7 @@ export default function Dashboard({ data }: Props) {
                         </div>
                         <CardHeader>
                             <CardTitle>Coverage per Environment</CardTitle>
-                            <CardDescription>Persentase service yang memiliki configuration pada tiap environment.</CardDescription>
+                            <CardDescription>Percentage of services that have configuration in each environment.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             {coverageByEnv.length > 0 && (
@@ -167,54 +135,6 @@ export default function Dashboard({ data }: Props) {
                                     ))}
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
-                )}
-
-                {/* Row 4: Shortcuts — tampil hanya jika ada data relevan */}
-                {(cfgCount > 0 || (svcCount > 0 || envCount > 0 || chCount > 0 || nsCount > 0)) && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Masuk ke Halaman</CardTitle>
-                            <CardDescription>Shortcut ke halaman detail yang sudah ada.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex flex-wrap gap-2">
-                            {cfgCount > 0 && (
-                                <Button asChild variant="secondary">
-                                    <a href="/configurations"><Settings className="mr-2 h-4 w-4" />Configurations</a>
-                                </Button>
-                            )}
-                            <>
-                                {svcCount > 0 && (
-                                    <Button asChild variant="outline">
-                                        <a href="/services"><Server className="mr-2 h-4 w-4" />Services</a>
-                                    </Button>
-                                )}
-                                {envCount > 0 && (
-                                    <Button asChild variant="outline">
-                                        <a href="/environments"><Globe className="mr-2 h-4 w-4" />Environments</a>
-                                    </Button>
-                                )}
-                                {chCount > 0 && (
-                                    <Button asChild variant="outline">
-                                        <a href="/channels"><Cable className="mr-2 h-4 w-4" />Channels</a>
-                                    </Button>
-                                )}
-                                {nsCount > 0 && (
-                                    <Button asChild variant="outline">
-                                        <a href="/namespaces"><Shield className="mr-2 h-4 w-4" />Namespaces</a>
-                                    </Button>
-                                )}
-                                {seCount > 0 && (
-                                    <Button asChild variant="outline">
-                                        <a href="/service-environments">
-                                            <Activity className="mr-2 h-4 w-4" />
-                                            Service Environments
-                                        </a>
-                                    </Button>
-                                )}
-
-                            </>
                         </CardContent>
                     </Card>
                 )}
