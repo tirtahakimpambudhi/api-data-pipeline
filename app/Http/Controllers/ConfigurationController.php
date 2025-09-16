@@ -81,7 +81,7 @@ class ConfigurationController extends Controller
     {
         try {
             $user = Auth::guard("web")->user();
-            if ($user->hasPermission(ResourcesTypes::CONFIGURATIONS, ActionsTypes::CREATE)) {
+            if (!$user->hasPermission(ResourcesTypes::CONFIGURATIONS, ActionsTypes::CREATE)) {
                 return redirect()->route('configurations.index')->with('error', 'User doesn\'t have permission to create configurations.');
             }
             $serviceEnvironment = $this->servicesEnvironmentsService->getAll(null, false);
@@ -137,14 +137,16 @@ class ConfigurationController extends Controller
     {
         try {
             $user = Auth::guard("web")->user();
-            if ($user->hasPermission(ResourcesTypes::CONFIGURATIONS, ActionsTypes::UPDATE)) {
+            if (!$user->hasPermission(ResourcesTypes::CONFIGURATIONS, ActionsTypes::UPDATE)) {
                 return redirect()->route('configurations.index')->with('error', 'User doesn\'t have permission to update configurations.');
             }
             $serviceEnvironment = $this->servicesEnvironmentsService->getAll(null, false);
             $channels = $this->channelsService->getAll(null, true);
+            $configuration = $this->configurationsService->getById($id);
             return Inertia::render('configuration/edit', [
                 'serviceEnvironments' => $serviceEnvironment,
                 'channels' => $channels,
+                'configuration' => $configuration,
             ]);
         } catch (AppServiceException $e) {
             if ($redirect = $this->handleUnauthorizedAndPermissionDenied($e, request())) {
