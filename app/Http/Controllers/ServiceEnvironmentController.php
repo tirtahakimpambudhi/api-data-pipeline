@@ -125,7 +125,7 @@ class ServiceEnvironmentController extends Controller
             if (!$user->hasPermission(ResourcesTypes::SERVICES_ENVIRONMENTS, ActionsTypes::UPDATE)) {
                 return redirect()->route('dashboard')->with('error', 'User doesn\'t have permissions to update services environments.');
             };
-            $services = $this->servicesService->getAll(null, true);
+            $services = $this->servicesService->getAll(null, false);
             $envs = $this->environmentsService->getAll(null, true);
             $svcEnv = $this->serviceEnvironmentsService->getById($id);
             return Inertia::render('service-environment/edit', [
