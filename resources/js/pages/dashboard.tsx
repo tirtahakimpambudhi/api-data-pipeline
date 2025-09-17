@@ -10,7 +10,7 @@ import { dashboard } from '@/routes'
 import { SharedData, type BreadcrumbItem, Namespace, Service, ServiceEnvironment, Environment, Channel, Configuration } from '@/types'
 import { Head, usePage } from '@inertiajs/react'
 import { Toaster } from 'sonner'
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { Activity, AlertTriangle, Cable, CheckCircle2, Globe, Server, Settings, Shield } from 'lucide-react'
 import { KpiCard } from '@/components/kpi-card'
 
@@ -75,7 +75,7 @@ export default function Dashboard({ data }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <Toaster richColors theme="system" position="top-right" />
+            <Toaster richColors position="top-right" />
 
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
                 <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
