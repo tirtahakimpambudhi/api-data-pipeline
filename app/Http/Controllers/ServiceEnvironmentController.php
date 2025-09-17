@@ -85,7 +85,7 @@ class ServiceEnvironmentController extends Controller
             if (!$user->hasPermission(ResourcesTypes::SERVICES_ENVIRONMENTS, ActionsTypes::CREATE)) {
                 return redirect()->route('dashboard')->with('error', 'User doesn\'t have permissions to create services environments.');
             };
-            $services = $this->servicesService->getAll(null, true);
+            $services = $this->servicesService->getAll(null, false);
             $envs = $this->environmentsService->getAll(null, true);
             return Inertia::render('service-environment/create', [
                 'services' => $services,
