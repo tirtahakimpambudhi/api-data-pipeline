@@ -27,7 +27,6 @@ export default function CreateServiceEnvironmentPage({ services, environments }:
         e.preventDefault();
         post(serviceEnvironmentRoute.store().url, { preserveScroll: true });
     };
-
     const handleReset = () => {
         reset('service_id', 'environment_id');
         resetAll();
@@ -39,7 +38,7 @@ export default function CreateServiceEnvironmentPage({ services, environments }:
     return (
         <AppLayout>
             <Head title="Create Service Environment" />
-            <Toaster richColors theme="system" position="top-right" />
+            <Toaster richColors position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">
@@ -53,12 +52,12 @@ export default function CreateServiceEnvironmentPage({ services, environments }:
                             <label className="mb-1 block font-medium">Service</label>
                             <Select value={String(data.service_id)} onValueChange={(val) => setData('service_id', val)} disabled={processing}>
                                 <SelectTrigger className={errors.service_id ? 'border-destructive' : ''}>
-                                    <SelectValue placeholder="Pilih service" />
+                                    <SelectValue placeholder="Select service" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {services.map((srv) => (
                                         <SelectItem key={srv.id} value={String(srv.id)}>
-                                            {srv.name}
+                                            {srv.full_name ?? srv.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -70,7 +69,7 @@ export default function CreateServiceEnvironmentPage({ services, environments }:
                             <label className="mb-1 block font-medium">Environment</label>
                             <Select value={String(data.environment_id)} onValueChange={(val) => setData('environment_id', val)} disabled={processing}>
                                 <SelectTrigger className={errors.environment_id ? 'border-destructive' : ''}>
-                                    <SelectValue placeholder="Pilih environment" />
+                                    <SelectValue placeholder="Select environment" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {environments.map((env) => (
