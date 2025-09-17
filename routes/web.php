@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\RegisteredAdminController;
 use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\ConfigurationController;
 use App\Http\Controllers\DashboardController;
@@ -9,10 +10,22 @@ use App\Http\Controllers\ServiceEnvironmentController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Models\Namespaces;
 
 Route::get('/', function () {
     return redirect()->route('login');
+});
+
+Route::middleware(['guest'])->group(function () {
+    Route::get('admin/register', [RegisteredAdminController::class, 'create'])
+        ->name('admin.register.form');
+
+    Route::post('admin/register', [RegisteredAdminController::class, 'store'])
+        ->name('admin.register.store');
+});
+
+Route::middleware('signed')->group(function () {
+    Route::get('admin/register/approve', [RegisteredAdminController::class, 'approve'])->name('admin.register.approve');
+    Route::get('/admin/register/reject',  [RegisteredAdminController::class, 'reject'])->name('admin.register.reject');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -49,7 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('configurations', ConfigurationController::class);
 
 
-    // Settting
+    // Setting
     Route::get('settings', function () {
         return Inertia::render('settings/profile');
     })->name('settings');
