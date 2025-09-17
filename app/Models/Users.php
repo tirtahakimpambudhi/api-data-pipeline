@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UsersFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -16,12 +17,14 @@ use Illuminate\Support\Str;
 
 class Users extends Authenticatable
 {
+    use HasUlids;
     /** @use HasFactory<UsersFactory> */
     use HasFactory, Notifiable;
 
     protected $table = 'users';
     protected $primaryKey = 'id';
     protected $keyType = 'string';
+    public $incrementing = false;
     /**
      * The attributes that are mass assignable.
      *
@@ -57,16 +60,6 @@ class Users extends Authenticatable
         ];
     }
 
-    protected static function boot() :void
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (empty($model->id)) {
-                $model->id = (string) Str::ulid();
-            }
-        });
-    }
 
     public function role() : BelongsTo
     {
