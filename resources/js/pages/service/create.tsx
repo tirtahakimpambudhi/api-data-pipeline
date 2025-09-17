@@ -42,14 +42,12 @@ export default function CreatePage({ namespaces }: Props) {
         resetAll();
         clearErrors();
     };
-
-    const isDirty = data.name !== '' || data.namespace_id !== '';
     const isDisabled = processing || !String(data.name).trim() || !String(data.namespace_id).trim();
 
     return (
         <AppLayout>
             <Head title="Create Service" />
-            <Toaster richColors theme="system" position="top-right" />
+            <Toaster richColors position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">
