@@ -67,7 +67,7 @@ export default function ServiceEditPage({
   return (
     <AppLayout>
       <Head title="Edit Service" />
-        <Toaster richColors theme="system" position="top-right" />
+        <Toaster richColors position="top-right" />
       <div className="p-4 lg:p-6">
         <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
           <h1 className="text-xl font-semibold">Edit Service</h1>
