@@ -4,8 +4,8 @@ import AppLayout from '@/layouts/app-layout';
 import environments from '@/routes/environments';
 import { Environment } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import React, { useEffect, useRef } from 'react';
-import { toast, Toaster } from 'sonner';
+import React, { useRef } from 'react';
+import { Toaster } from 'sonner';
 import { useFlash } from '@/hooks/use-flash';
 
 type Props = {
@@ -45,7 +45,7 @@ export default function EditPage({ environment }: Props) {
     return (
         <AppLayout>
             <Head title="Edit Environment" />
-            <Toaster richColors theme="system" position="top-right" />`
+            <Toaster richColors position="top-right" />`
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-lg rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <h1 className="text-xl font-semibold">Edit Environment</h1>
