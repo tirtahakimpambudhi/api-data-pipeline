@@ -1,7 +1,7 @@
 // Components
 import PasswordResetLinkController from '@/actions/App/Http/Controllers/Auth/PasswordResetLinkController';
 import { login } from '@/routes';
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 
 import InputError from '@/components/input-error';
@@ -10,12 +10,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import { useFlash } from '@/hooks/use-flash';
+import { Toaster } from 'sonner';
 
-export default function ForgotPassword({ status }: { status?: string }) {
+type Props = {
+    status?: string
+    flash?: {
+        error?: string;
+        success?: string;
+        message?: string;
+    };
+}
+
+export default function ForgotPassword({ status }: Props) {
+    const {props} = usePage<Props>();
+    useFlash(props?.flash);
     return (
         <AuthLayout title="Forgot password" description="Enter your email to receive a password reset link">
             <Head title="Forgot password" />
-
+            <Toaster richColors position="top-right" />
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
 
             <div className="space-y-6">
