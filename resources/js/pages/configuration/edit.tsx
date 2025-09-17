@@ -72,7 +72,7 @@ export default function ConfigurationEditPage({ configuration, serviceEnvironmen
     return (
         <AppLayout>
             <Head title="Edit Configuration" />
-            <Toaster richColors theme="system" position="top-right" />
+            <Toaster richColors position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">
@@ -92,7 +92,7 @@ export default function ConfigurationEditPage({ configuration, serviceEnvironmen
                                 disabled={processing}
                             >
                                 <SelectTrigger className={errors.service_environment_id ? 'border-destructive' : ''}>
-                                    <SelectValue placeholder="Pilih service / environment" />
+                                    <SelectValue placeholder="Select service / environment" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {serviceEnvironments.map((se) => (
@@ -109,7 +109,7 @@ export default function ConfigurationEditPage({ configuration, serviceEnvironmen
                             <label className="mb-1 block font-medium">Channel</label>
                             <Select value={String(data.channel_id)} onValueChange={(val) => setData('channel_id', val)} disabled={processing}>
                                 <SelectTrigger className={errors.channel_id ? 'border-destructive' : ''}>
-                                    <SelectValue placeholder="Pilih channel" />
+                                    <SelectValue placeholder="Select channel" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {channels.map((ch) => (
