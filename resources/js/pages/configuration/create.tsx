@@ -56,7 +56,7 @@ export default function CreateConfigurationPage({ serviceEnvironments, channels 
     return (
         <AppLayout>
             <Head title="Create Configuration" />
-            <Toaster richColors theme="system" position="top-right" />
+            <Toaster richColors position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <div className="mb-4 flex items-center justify-between">
@@ -83,12 +83,12 @@ export default function CreateConfigurationPage({ serviceEnvironments, channels 
                                 disabled={processing}
                             >
                                 <SelectTrigger className={errors.service_environment_id ? 'border-destructive' : ''}>
-                                    <SelectValue placeholder="Pilih service / environment" />
+                                    <SelectValue placeholder="Select service / environment" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {serviceEnvironments.map((se) => (
                                         <SelectItem key={se.id} value={String(se.id)}>
-                                            {seLabel(se)}
+                                            {se.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -100,7 +100,7 @@ export default function CreateConfigurationPage({ serviceEnvironments, channels 
                             <label className="mb-1 block font-medium">Channel</label>
                             <Select value={String(data.channel_id)} onValueChange={(val) => setData('channel_id', val)} disabled={processing}>
                                 <SelectTrigger className={errors.channel_id ? 'border-destructive' : ''}>
-                                    <SelectValue placeholder="Pilih channel" />
+                                    <SelectValue placeholder="Select channel" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {channels.map((ch) => (
