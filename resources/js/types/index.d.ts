@@ -53,6 +53,7 @@ export interface Service {
     id: number;
     name: string;
     namespace_id: number;
+    full_name?: string;
     namespace?: Namespace;
     created_at: string;
     updated_at?: string;
