@@ -9,7 +9,7 @@ import serviceRoutes from '@/routes/services';
 import { PaginatedResponse, Service, type BreadcrumbItem } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import axios from 'axios';
@@ -204,7 +204,7 @@ export default function ServicePage({
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Service" />
-      <Toaster richColors theme="system" position="top-right" />
+        <Toaster richColors position="top-right" />
 
       <div className="flex flex-col gap-4 p-4 lg:p-6">
           {(errors && Object.keys(errors).length > 0) && (
