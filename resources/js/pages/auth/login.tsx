@@ -11,8 +11,9 @@ import { request } from '@/routes/password';
 import { Form, Head, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import React, { useEffect } from 'react';
-import { toast, Toaster } from 'sonner';
+import React from 'react';
+import { Toaster } from 'sonner';
+import { useFlash } from '@/hooks/use-flash';
 
 interface LoginProps {
     status?: string;
@@ -23,19 +24,16 @@ type SharedPageProps = {
     flash?: {
         error?: string;
         success?: string;
+        message?: string;
     };
 };
 
 export default function Login({ status, canResetPassword }: LoginProps) {
     const { props } = usePage<SharedPageProps>();
-    useEffect(() => {
-        if (props.flash?.error) {
-            toast.error(props.flash?.error);
-        }
-    }, [props.flash?.error]);
+    useFlash(props?.flash);
     return (
         <>
-            <Toaster richColors position="top-center" closeButton />
+            <Toaster richColors position="top-right" closeButton />
             <Card className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
                 <Head title="Log in" />
                 <Card className="w-full max-w-sm">
