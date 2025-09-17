@@ -1,5 +1,5 @@
 import NewPasswordController from '@/actions/App/Http/Controllers/Auth/NewPasswordController';
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 
 import InputError from '@/components/input-error';
@@ -7,17 +7,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import { Toaster } from 'sonner';
+import React from 'react';
+import { useFlash } from '@/hooks/use-flash';
 
-interface ResetPasswordProps {
+type ResetPasswordProps = {
     token: string;
     email: string;
+    flash?: {
+        error?: string;
+        success?: string;
+        message?: string;
+    };
 }
 
 export default function ResetPassword({ token, email }: ResetPasswordProps) {
+    const {props} = usePage<ResetPasswordProps>();
+    useFlash(props?.flash);
     return (
         <AuthLayout title="Reset password" description="Please enter your new password below">
             <Head title="Reset password" />
-
+            <Toaster richColors position="top-right" />
             <Form
                 {...NewPasswordController.store.form()}
                 transform={(data) => ({ ...data, token, email })}
