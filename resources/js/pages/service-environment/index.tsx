@@ -9,7 +9,7 @@ import serviceEnvironmentRoute from '@/routes/service-environments';
 import { PaginatedResponse, ServiceEnvironment, type BreadcrumbItem } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import { useFlash } from '@/hooks/use-flash';
 import axios from 'axios';
@@ -189,7 +189,7 @@ export default function ServiceEnvironmentPage({
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Service Environments" />
-      <Toaster richColors theme="system" position="top-right" />
+        <Toaster richColors position="top-right" />
 
       <div className="flex flex-col gap-4 p-4 lg:p-6">
         <FilterCard title="Filter Service Environment" description="Filter by service or environment" className="mx-auto w-full max-w-2xl">
