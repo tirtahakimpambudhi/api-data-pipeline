@@ -54,7 +54,7 @@ export default function ServiceEnvironmentEditPage({
     return (
         <AppLayout>
             <Head title="Edit Service Environment" />
-            <Toaster richColors theme="system" position="top-right" />
+            <Toaster richColors position="top-right" />
             <div className="p-4 lg:p-6">
                 <div className="mx-auto max-w-xl rounded-xl border bg-card p-4 text-card-foreground shadow-sm lg:p-6">
                     <h1 className="text-xl font-semibold">Edit Service Environment</h1>
@@ -65,7 +65,7 @@ export default function ServiceEnvironmentEditPage({
                             <label className="mb-1 block font-medium">Service</label>
                             <Select value={String(data.service_id)} onValueChange={(val) => setData('service_id', val)} disabled={processing}>
                                 <SelectTrigger className={errors.service_id ? 'border-destructive' : ''}>
-                                    <SelectValue placeholder="Pilih service" />
+                                    <SelectValue placeholder="Select service" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {services.map((srv) => (
@@ -82,7 +82,7 @@ export default function ServiceEnvironmentEditPage({
                             <label className="mb-1 block font-medium">Environment</label>
                             <Select value={String(data.environment_id)} onValueChange={(val) => setData('environment_id', val)} disabled={processing}>
                                 <SelectTrigger className={errors.environment_id ? 'border-destructive' : ''}>
-                                    <SelectValue placeholder="Pilih environment" />
+                                    <SelectValue placeholder="Select environment" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {environments.map((env) => (
