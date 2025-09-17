@@ -4,17 +4,29 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
+import { useFlash } from '@/hooks/use-flash';
+import { Toaster } from 'sonner';
+
+type Props = {
+    flash?: {
+        error?: string;
+        success?: string;
+        message?: string;
+    };
+}
 
 export default function ConfirmPassword() {
+    const {props} = usePage<Props>();
+    useFlash(props?.flash);
     return (
         <AuthLayout
             title="Confirm your password"
             description="This is a secure area of the application. Please confirm your password before continuing."
         >
             <Head title="Confirm password" />
-
+            <Toaster richColors position="top-right" />
             <Form {...ConfirmablePasswordController.store.form()} resetOnSuccess={['password']}>
                 {({ processing, errors }) => (
                     <div className="space-y-6">
