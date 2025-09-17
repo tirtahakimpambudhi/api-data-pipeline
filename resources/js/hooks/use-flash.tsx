@@ -1,40 +1,65 @@
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 type Flash = {
-    message?: string;
-    success?: string;
-    error?: string;
+    message?: string
+    success?: string
+    error?: string
 }
 
-export const useFlash = (value : Flash | undefined) => {
-    const [errorFlash, setErrorFlash] = useState(value?.error);
-    const [successFlash, setSuccessFlash] = useState(value?.success);
-    const [messageFlash, setMessageFlash] = useState(value?.message);
+export const useFlash = (value: Flash | undefined) => {
+    const [errorFlash, setErrorFlash] = useState<string | undefined>(undefined)
+    const [successFlash, setSuccessFlash] = useState<string | undefined>(undefined)
+    const [messageFlash, setMessageFlash] = useState<string | undefined>(undefined)
 
     const resetAll = () => {
-        setErrorFlash(undefined);
-        setSuccessFlash(undefined);
-        setMessageFlash(undefined);
+        setErrorFlash(undefined)
+        setSuccessFlash(undefined)
+        setMessageFlash(undefined)
     }
 
     useEffect(() => {
-        if (errorFlash) toast.error(errorFlash);
-    }, [errorFlash]);
+        if (!value) return
+
+        if (value.error) {
+            toast.error(value.error)
+            resetAll()
+            return
+        }
+        if (value.success) {
+            toast.success(value.success)
+            resetAll()
+            return
+        }
+        if (value.message) {
+            toast.info(value.message)
+            resetAll()
+            return
+        }
+    }, [value?.error, value?.success, value?.message])
 
     useEffect(() => {
-        if (successFlash) toast.success(successFlash);
-    }, [successFlash]);
+        if (value) return
+        if (errorFlash) toast.error(errorFlash)
+    }, [errorFlash, value])
 
     useEffect(() => {
-        if (messageFlash) toast.info(messageFlash);
-    }, [messageFlash]);
+        if (value) return
+        if (successFlash) toast.success(successFlash)
+    }, [successFlash, value])
 
+    useEffect(() => {
+        if (value) return
+        if (messageFlash) toast.info(messageFlash)
+    }, [messageFlash, value])
 
     return {
-      errorFlash,
-      successFlash,
-      messageFlash,
-      resetAll
-    };
+        errorFlash,
+        successFlash,
+        messageFlash,
+        resetAll,
+        setErrorFlash,
+        setSuccessFlash,
+        setMessageFlash,
+    }
 }
