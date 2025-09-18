@@ -1,61 +1,186 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Aino SVC
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> A lightweight service to store and manage application configuration centrally across services.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Table of Contents
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+* [Overview](#overview)
+* [Features](#features)
+* [Tech Stack](#tech-stack)
+* [Architecture](#architecture)
+* [Project Structure](#project-structure)
+* [Getting Started](#getting-started)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+  * [Prerequisites](#prerequisites)
+  * [Installation](#installation)
+  * [Configuration](#configuration)
+  * [Run Locally](#run-locally)
+  * [Seeding & Route Generation](#seeding--route-generation)
+  * [Available Scripts](#available-scripts)
+* [Database](#database)
+* [Deployment](#deployment)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Overview
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Aino SVC (Service Configuration) is a lightweight internal tool to **store and manage configuration** for applications and services. It provides a simple UI and API to read/update config values with auditability.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Features
 
-## Laravel Sponsors
+* CRUD for namespace, environment, channel, service, service environment, and configuration
+* Role-based access for editing
+* Email notifications
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Tech Stack
 
-### Premium Partners
+**Core:**
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development/)**
-- **[Active Logic](https://activelogic.com)**
+* **Backend:** Laravel 12
+* **Frontend:** Inertia.js + React
+* **UI Components:** shadcn/ui
+* **Routing:** Wayfinder
+* **Build Tool:** Vite
+* **Database:** MySQL (via Docker)
+* **Mail:** Laravel Mailer (SMTP)
 
-## Contributing
+> Package manager: **npm**
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Architecture
 
-## Code of Conduct
+```
+[ React UI (shadcn/ui) ] --Inertia--> [ Laravel Controllers ] --> [ Services ] --> [ DB ]
+                                      |-> [ Wayfinder routing ]
+                                      |-> [ Mailer (SMTP) ]
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+* **Inertia** bridges React pages to Laravel routes/controllers without a REST layer for most pages.
+* **Wayfinder** manages route discovery/navigation within Laravel.
+* **shadcn/ui** supplies accessible, themeable components.
+* **Mailer** sends outbound emails (SMTP).
 
-## Security Vulnerabilities
+## Project Structure
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```
+.
+├── app/                    # Laravel app 
+├── bootstrap/
+├── config/
+├── database/
+│   ├── migrations/
+│   └── seeders/
+├── public/
+├── resources/
+│   ├── js/                 # React (Inertia) pages/components
+│   ├── views/app.blade.php # Inertia entry
+│   └── css/
+├── routes/
+│   └── web.php             # Inertia pages
+├── storage/
+├── tests/
+├── vite.config.ts
+└── composer.json / package.json
+```
 
-## License
+## Getting Started
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Prerequisites
+
+* PHP 8.2+, Composer
+* Node.js 20+ and **npm**
+* Docker & Docker Compose (for MySQL)
+
+### Installation
+
+```bash
+# clone
+git clone https://github.com/tirtahakimpambudhi/aino-web-svc-conf.git
+cd aino-svc
+
+# install backend deps
+composer install
+
+# install frontend deps
+npm install
+
+# env
+cp .env.example .env
+php artisan key:generate
+```
+
+### Configuration
+
+Update `.env` for MySQL, app URL, and SMTP.
+
+```bash
+APP_NAME="Aino SVC"
+APP_ENV=local
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=aino_svc
+DB_USERNAME=root
+DB_PASSWORD=secret
+
+# use app password google
+MAIL_MAILER=smtp
+MAIL_SCHEME=null
+MAIL_HOST=smtp.googlemail.com
+MAIL_PORT=587
+MAIL_USERNAME=example@example.com
+MAIL_PASSWORD=examplepassword
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="example@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+### Run Locally
+
+```bash
+# start database (if using Docker)
+docker compose up -d db
+
+# run migrations
+php artisan migrate
+
+# start dev servers
+php artisan serve
+npm run dev
+```
+
+### Seeding & Route Generation
+
+```bash
+# seed initial data
+php artisan db:seed
+
+# generate routes via Wayfinder
+php artisan wayfinder:generate
+```
+
+### Available Scripts
+
+```bash
+# frontend
+npm run dev     # Vite dev
+npm run build   # production build
+
+# backend
+php artisan migrate
+php artisan db:seed
+php artisan test
+```
+
+## Database
+
+* **Engine:** MySQL (via Docker Compose)
+
+## Deployment
+
+* Ensure `.env` uses production DB credentials and mail settings.
+* Build frontend: `npm run build`.
+* Configure web server (Nginx/Apache) to serve Laravel public path and Vite assets.

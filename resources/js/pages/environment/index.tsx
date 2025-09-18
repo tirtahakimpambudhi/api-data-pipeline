@@ -9,7 +9,7 @@ import environmentRoutes from '@/routes/environments';
 import { Environment, type BreadcrumbItem, type PaginatedResponse } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import  { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import axios from 'axios';
@@ -17,7 +17,7 @@ import { useFlash } from '@/hooks/use-flash';
 import { numberItemOnPage } from '@/lib/utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'environment', href: environmentRoutes.index.url() },
+  { title: 'Environment', href: environmentRoutes.index.url() },
 ];
 
 const formatDateTime = (iso?: string) => {
