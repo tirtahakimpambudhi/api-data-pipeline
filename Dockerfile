@@ -41,8 +41,6 @@ COPY --from=composerbase /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www
 COPY . .
 
-
-
 ENV APP_DEBUG=false \
     APP_KEY=${APP_KEY} \
     DB_CONNECTION=sqlite \
@@ -58,8 +56,12 @@ RUN set -eux; \
     find storage -type d -exec chmod 775 {} \;; \
     find storage -type f -exec chmod 664 {} \;; \
     chmod -R 775 bootstrap/cache; \
-    # migrate saat build
-    php artisan migrate --force; 
+    # Optional migrate saat build
+    php artisan migrate --force; \
+    composer require fakerphp/faker; \
+    # Optional
+    php artisan db:seed --class ProdSeeder  --force;  \
+    composer remove fakerphp/faker;
 
 
 EXPOSE 9000
