@@ -1,4 +1,6 @@
-# Aino SVC
+
+
+# Elastic Connector Alert
 
 > A lightweight service to store and manage application configuration centrally across services.
 
@@ -43,7 +45,7 @@ Aino SVC (Service Configuration) is a lightweight internal tool to **store and m
 * **UI Components:** shadcn/ui
 * **Routing:** Wayfinder
 * **Build Tool:** Vite
-* **Database:** MySQL (via Docker)
+* **Database:** SQLite
 * **Mail:** Laravel Mailer (SMTP)
 
 > Package manager: **npm**
@@ -51,7 +53,7 @@ Aino SVC (Service Configuration) is a lightweight internal tool to **store and m
 ## Architecture
 
 ```
-[ React UI (shadcn/ui) ] --Inertia--> [ Laravel Controllers ] --> [ Services ] --> [ DB ]
+[ React UI (shadcn/ui) ] --Inertia--> [ Laravel Controllers ] --> [ Services ] --> [ SQLite DB file ]
                                       |-> [ Wayfinder routing ]
                                       |-> [ Mailer (SMTP) ]
 ```
@@ -70,7 +72,8 @@ Aino SVC (Service Configuration) is a lightweight internal tool to **store and m
 ├── config/
 ├── database/
 │   ├── migrations/
-│   └── seeders/
+│   ├── seeders/
+│   └── database.sqlite     # SQLite file
 ├── public/
 ├── resources/
 │   ├── js/                 # React (Inertia) pages/components
@@ -90,14 +93,14 @@ Aino SVC (Service Configuration) is a lightweight internal tool to **store and m
 
 * PHP 8.2+, Composer
 * Node.js 20+ and **npm**
-* Docker & Docker Compose (for MySQL)
+* SQLite (sudah tersedia di banyak sistem atau melalui ekstensi PHP `pdo_sqlite`)
 
 ### Installation
 
 ```bash
 # clone
-git clone https://github.com/tirtahakimpambudhi/aino-web-svc-conf.git
-cd aino-svc
+git clone https://git.ainosi.co.id/infrastructure/elastic-connector-alert
+cd elastic-connector-alert
 
 # install backend deps
 composer install
@@ -112,19 +115,15 @@ php artisan key:generate
 
 ### Configuration
 
-Update `.env` for MySQL, app URL, and SMTP.
+Update `.env` untuk SQLite dan SMTP.
 
-```bash
+```dotenv
 APP_NAME="Aino SVC"
 APP_ENV=local
 APP_URL=http://localhost:8000
 
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=aino_svc
-DB_USERNAME=root
-DB_PASSWORD=secret
+DB_CONNECTION=sqlite
+DB_DATABASE=/absolute/path/to/project/database/database.sqlite
 
 # use app password google
 MAIL_MAILER=smtp
@@ -138,13 +137,18 @@ MAIL_FROM_ADDRESS="example@example.com"
 MAIL_FROM_NAME="${APP_NAME}"
 ```
 
+> **Catatan:** Ganti `DB_DATABASE` sesuai path absolut file `database.sqlite` di sistem Anda. Biasanya cukup:
+> `DB_DATABASE=${APP_PATH}/database/database.sqlite`
+> atau
+> `DB_DATABASE=/var/www/database/database.sqlite` (jika di Docker).
+
 ### Run Locally
 
 ```bash
-# start database (if using Docker)
-docker compose up -d db
+# buat file database jika belum ada
+touch database/database.sqlite
 
-# run migrations
+# jalankan migrasi
 php artisan migrate
 
 # start dev servers
@@ -156,7 +160,8 @@ npm run dev
 
 ```bash
 # seed initial data
-php artisan db:seed
+php artisan db:seed --class=ProdSeeder # for production
+php artisan db:seed --class=DevSeeder  # for development
 
 # generate routes via Wayfinder
 php artisan wayfinder:generate
@@ -173,14 +178,17 @@ npm run build   # production build
 php artisan migrate
 php artisan db:seed
 php artisan test
+
+# Running front end and back end
+composer run dev
 ```
 
 ## Database
 
-* **Engine:** MySQL (via Docker Compose)
+* **Engine:** SQLite (single file DB at `database/database.sqlite`)
 
 ## Deployment
 
-* Ensure `.env` uses production DB credentials and mail settings.
+* Pastikan `.env` menggunakan path absolut ke `database.sqlite` di server.
 * Build frontend: `npm run build`.
 * Configure web server (Nginx/Apache) to serve Laravel public path and Vite assets.
