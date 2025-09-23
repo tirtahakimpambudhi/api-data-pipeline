@@ -1,15 +1,30 @@
 
 services:
-  mysql:
-    image: mariadb:latest
-    container_name: mysql-aino-svc-conf
+  app:
+    container_name: app-nginx-aino-svc-conf
+    networks:
+      - app-network
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: phpapp
     env_file:
-      - .env.mysql
+      - .env
+
+
+
+  nginx:
+    container_name: nginx-aino-svc-conf
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: nginxapp
+    networks: [app-network]
+    depends_on: [app]
     ports:
-      - 3308:3306
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      - "8080:80"
+
+
+networks:
+  app-network:
+    name: "app-network"
