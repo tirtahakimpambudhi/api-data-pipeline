@@ -87,7 +87,7 @@ export default function ConfigurationIndexPage({ configurations, filters }: Page
   const rows = useMemo(() =>
     tableData.map((c) => ({
       ...c,
-      _serviceName: c?.service_environment?.service?.name ?? '–',
+      _serviceName: c?.service_environment?.service?.full_name ?? '–',
       _envName: c?.service_environment?.environment?.name ?? '–',
       _channelName: c?.channel?.name ?? '–',
     })),
