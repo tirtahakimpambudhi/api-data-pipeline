@@ -192,3 +192,86 @@ composer run dev
 * Pastikan `.env` menggunakan path absolut ke `database.sqlite` di server.
 * Build frontend: `npm run build`.
 * Configure web server (Nginx/Apache) to serve Laravel public path and Vite assets.
+
+
+
+
+##
+
+# Daftar Fitur 
+## 1. Pengelolaan Data Utama
+
+* **Namespace**
+
+  * Menambahkan Namespace baru.
+  * Menampilkan daftar Namespace.
+  * Memperbarui informasi Namespace.
+  * Menghapus Namespace.
+
+* **Service**
+
+  * Menambahkan Service baru yang terkait dengan suatu Namespace.
+  * Menampilkan daftar Service pada Namespace tertentu.
+  * Memperbarui informasi Service.
+  * Menghapus Service.
+
+* **Service Environment**
+
+  * Menambahkan Environment pada Service (contoh: development, staging, production).
+  * Menampilkan daftar Service Environment.
+  * Memperbarui informasi Service Environment.
+  * Menghapus Service Environment.
+
+* **Channel**
+
+  * Menambahkan Channel komunikasi (contoh: Email, Slack, Webhook).
+  * Menampilkan daftar Channel.
+  * Memperbarui informasi Channel.
+  * Menghapus Channel.
+
+* **Configuration**
+
+  * Menambahkan Konfigurasi yang terkait dengan Service Environment dan Channel.
+  * Menampilkan daftar Konfigurasi.
+  * Memperbarui Konfigurasi.
+  * Menghapus Konfigurasi.
+
+---
+
+## 2. Pengaturan Hak Akses 
+
+* **Peran Admin**
+
+  * Memiliki akses penuh untuk mengelola semua data (Namespace, Service, Service Environment, Channel, Configuration).
+
+* **Peran Pengguna Biasa**
+
+  * Memiliki akses penuh untuk resource Configuration, dan Read Only untuk Service Environment dan Channel 
+
+---
+
+## 3. Autentikasi dan Registrasi
+
+* Registrasi pengguna dengan peran pengguna biasa.
+* Login sebagai pengguna biasa atau admin.
+* Registrasi pengguna dengan peran pengguna admin, untuk mengaktifkan fitur ini diharap memberikan konfigurasi SMTP dilaravel environment nya. Proses registrasi admin diperlukan approval dari email developer atau email yang dikonfigurasi laravel environment nya.
+* Terdapat seeder yang menyediakan data pengguna awal
+
+---
+
+## 4. Konfigurasi Email (SMTP Laravel)
+
+Agar sistem berjalan lancar dalam mengirim email verifikasi , reset kata sandi, dan fitur register admin.
+
+Konfigurasi standar pada file `.env` Laravel:
+
+```
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.provider.com
+MAIL_PORT=587
+MAIL_USERNAME=nama_pengguna
+MAIL_PASSWORD=katasandi
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@domainanda.com
+MAIL_FROM_NAME="Nama Aplikasi"
+```
