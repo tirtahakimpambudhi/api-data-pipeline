@@ -113,10 +113,8 @@ class ProdSeeder extends Seeder
                 ))
                 ->create();
 
-            Users::factory(4)->state(['role_id' => $slaveRoleId[0]])->create();
-            Users::factory(1)->state(['role_id' => $almightyRoleId[0]])->create();
-            Users::factory(1)->state(['role_id' => $almightyRoleId[0], 'email' => 'mahakuasa@gmail.com', 'password' => Hash::make("mahakuasa1234")])->create();
-            Users::factory(1)->state(['role_id' => $slaveRoleId[0], 'email' => 'budak@gmail.com', 'password' => Hash::make("budak1234")])->create();
+            Users::factory(1)->state(['role_id' => $almightyRoleId[0], 'email' => 'mahakuasa@gmail.com', 'password' => Hash::make("mahakuasa1234"), 'name' => 'mahakuasa'])->create();
+            Users::factory(1)->state(['role_id' => $slaveRoleId[0], 'email' => 'budak@gmail.com', 'password' => Hash::make("budak1234"), 'name' => 'budak'])->create();
             DB::commit();
 
 
