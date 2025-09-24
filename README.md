@@ -28,7 +28,7 @@
 
 ## Overview
 
-Aino SVC (Service Configuration) is a lightweight internal tool to **store and manage configuration** for applications and services. It provides a simple UI and API to read/update config values with auditability.
+Elastic Connector Alert (Service Configuration) is a lightweight internal tool to **store and manage configuration** for applications and services. It provides a simple UI and API to read/update config values with auditability.
 
 ## Features
 
@@ -118,7 +118,7 @@ php artisan key:generate
 Update `.env` untuk SQLite dan SMTP.
 
 ```dotenv
-APP_NAME="Aino SVC"
+APP_NAME="Elastic Connector Alert"
 APP_ENV=local
 APP_URL=http://localhost:8000
 
