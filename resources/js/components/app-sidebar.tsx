@@ -61,7 +61,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href={dashboard.url ? dashboard.url() : dashboard()} prefetch>
-                <h1 className="text-lg font-bold">Aino SVC</h1>
+                <h1 className="text-lg font-bold">Elastic Connector Alert</h1>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
