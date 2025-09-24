@@ -57,9 +57,7 @@ RUN set -eux; \
     chown -R www-data:www-data storage bootstrap/cache database; \
     find storage -type d -exec chmod 775 {} \;; \
     find storage -type f -exec chmod 664 {} \;; \
-    chmod -R 775 bootstrap/cache; \
-    # migrate saat build
-    php artisan migrate --force; 
+    chmod -R 775 bootstrap/cache;
 
 
 EXPOSE 9000
