@@ -1,0 +1,86 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Constants\RolesTypes;
+use App\Http\Controllers\Controller;
+use App\Models\Permissions;
+use App\Models\Roles;
+use App\Models\Users;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class RegisteredUserController extends Controller
+{
+    /**
+     * Show the registration page.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('auth/register');
+    }
+
+    /**
+     * Handle an incoming registration request.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+
+    public function store(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|lowercase|email|max:255|unique:' . Users::class,
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        /** @var Users $user */
+        $user = DB::transaction(function () use ($request) {
+            /** @var Roles $role */
+            $role = Roles::query()->firstOrCreate(
+                ['name' => RolesTypes::SLAVE],
+                ['name' => RolesTypes::SLAVE, 'description' => 'Limited access role']
+            );
+
+            $permSpecs = RolesTypes::permissions(RolesTypes::SLAVE);
+
+            $permissionIds = collect($permSpecs)->map(function (array $spec) {
+                $perm = Permissions::query()->firstOrCreate(
+                    [
+                        'resource_type' => $spec['resource_type'],
+                        'action'        => $spec['action'],
+                    ],
+                    [
+                        'resource_type' => $spec['resource_type'],
+                        'action'        => $spec['action'],
+                        'description'   => $spec['description'] ?? null,
+                    ]
+                );
+                return $perm->getKey();
+            })->all();
+
+            $role->permissions()->syncWithoutDetaching($permissionIds);
+
+            $user = Users::create([
+                'name'     => $request->name,
+                'email'    => $request->email,
+                'password' => Hash::make($request->password),
+                'role_id'  => $role->getKey(),
+            ]);
+
+            return $user;
+        });
+
+        event(new Registered($user));
+        Auth::login($user);
+
+        return redirect()->intended(route('dashboard', absolute: false));
+    }
+}

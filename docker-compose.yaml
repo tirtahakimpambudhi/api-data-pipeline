@@ -1,0 +1,47 @@
+
+services:
+  app:
+    container_name: app-nginx-aino-svc-conf
+    networks:
+      - app-network
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: phpapp
+    command: [ "sh", "-c", "php artisan migrate --force && php-fpm" ]  # override command in dockerfile to running migrate
+    # command: >
+    #    sh -c "
+    #      composer require fakerphp/faker --no-interaction --no-progress --prefer-dist &&
+    #      php artisan migrate --force &&
+    #      php artisan db:seed --class=ProdSeeder --force &&
+    #      composer remove fakerphp/faker --no-interaction --no-progress &&
+    #      php-fpm
+    #    "     # override command in dockerfile where need migrate and seed
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -an | grep -q ':9000' || exit 1"]
+      interval: 90s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    env_file:
+      - .env
+
+
+
+  nginx:
+    container_name: nginx-aino-svc-conf
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: nginxapp
+    networks: [app-network]
+    depends_on: 
+      app:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+
+
+networks:
+  app-network:
+    name: "app-network"

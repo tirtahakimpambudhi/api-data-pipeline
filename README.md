@@ -1,21 +1,277 @@
-Elastic Connector Alert
-- abcdef
-- abcdef
-
-How to
----------------------------------------------------------------
 
 
-to build : ( you must in working folder ) 
-> docker build -t phpldapadmin-alpine-httpd .
+# Elastic Connector Alert
 
-to Check if success and available in list images :
-> docker images
+> A lightweight service to store and manage application configuration centrally across services.
 
-to run to create new container:
-> docker run -d -p 80:8080  --name phpldapadmin phpldapadmin-alpine-httpd
+---
 
-to run after create new container
-> docker container ls -a
+## Table of Contents
 
-> docker start phpldapadmin
+* [Overview](#overview)
+* [Features](#features)
+* [Tech Stack](#tech-stack)
+* [Architecture](#architecture)
+* [Project Structure](#project-structure)
+* [Getting Started](#getting-started)
+
+  * [Prerequisites](#prerequisites)
+  * [Installation](#installation)
+  * [Configuration](#configuration)
+  * [Run Locally](#run-locally)
+  * [Seeding & Route Generation](#seeding--route-generation)
+  * [Available Scripts](#available-scripts)
+* [Database](#database)
+* [Deployment](#deployment)
+
+---
+
+## Overview
+
+Elastic Connector Alert (Service Configuration) is a lightweight internal tool to **store and manage configuration** for applications and services. It provides a simple UI and API to read/update config values with auditability.
+
+## Features
+
+* CRUD for namespace, environment, channel, service, service environment, and configuration
+* Role-based access for editing
+* Email notifications
+
+## Tech Stack
+
+**Core:**
+
+* **Backend:** Laravel 12
+* **Frontend:** Inertia.js + React
+* **UI Components:** shadcn/ui
+* **Routing:** Wayfinder
+* **Build Tool:** Vite
+* **Database:** SQLite
+* **Mail:** Laravel Mailer (SMTP)
+
+> Package manager: **npm**
+
+## Architecture
+
+```
+[ React UI (shadcn/ui) ] --Inertia--> [ Laravel Controllers ] --> [ Services ] --> [ SQLite DB file ]
+                                      |-> [ Wayfinder routing ]
+                                      |-> [ Mailer (SMTP) ]
+```
+
+* **Inertia** bridges React pages to Laravel routes/controllers without a REST layer for most pages.
+* **Wayfinder** manages route discovery/navigation within Laravel.
+* **shadcn/ui** supplies accessible, themeable components.
+* **Mailer** sends outbound emails (SMTP).
+
+## Project Structure
+
+```
+.
+├── app/                    # Laravel app 
+├── bootstrap/
+├── config/
+├── database/
+│   ├── migrations/
+│   ├── seeders/
+│   └── database.sqlite     # SQLite file
+├── public/
+├── resources/
+│   ├── js/                 # React (Inertia) pages/components
+│   ├── views/app.blade.php # Inertia entry
+│   └── css/
+├── routes/
+│   └── web.php             # Inertia pages
+├── storage/
+├── tests/
+├── vite.config.ts
+└── composer.json / package.json
+```
+
+## Getting Started
+
+### Prerequisites
+
+* PHP 8.2+, Composer
+* Node.js 20+ and **npm**
+* SQLite (sudah tersedia di banyak sistem atau melalui ekstensi PHP `pdo_sqlite`)
+
+### Installation
+
+```bash
+# clone
+git clone https://git.ainosi.co.id/infrastructure/elastic-connector-alert
+cd elastic-connector-alert
+
+# install backend deps
+composer install
+
+# install frontend deps
+npm install
+
+# env
+cp .env.example .env
+php artisan key:generate
+```
+
+### Configuration
+
+Update `.env` untuk SQLite dan SMTP.
+
+```dotenv
+APP_NAME="Elastic Connector Alert"
+APP_ENV=local
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=sqlite
+DB_DATABASE=/absolute/path/to/project/database/database.sqlite
+
+# use app password google
+MAIL_MAILER=smtp
+MAIL_SCHEME=null
+MAIL_HOST=smtp.googlemail.com
+MAIL_PORT=587
+MAIL_USERNAME=example@example.com
+MAIL_PASSWORD=examplepassword
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="example@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+> **Catatan:** Ganti `DB_DATABASE` sesuai path absolut file `database.sqlite` di sistem Anda. Biasanya cukup:
+> `DB_DATABASE=${APP_PATH}/database/database.sqlite`
+> atau
+> `DB_DATABASE=/var/www/database/database.sqlite` (jika di Docker).
+
+### Run Locally
+
+```bash
+# buat file database jika belum ada
+touch database/database.sqlite
+
+# jalankan migrasi
+php artisan migrate
+
+# start dev servers
+php artisan serve
+npm run dev
+```
+
+### Seeding & Route Generation
+
+```bash
+# seed initial data
+php artisan db:seed --class=ProdSeeder # for production
+php artisan db:seed --class=DevSeeder  # for development
+
+# generate routes via Wayfinder
+php artisan wayfinder:generate
+```
+
+### Available Scripts
+
+```bash
+# frontend
+npm run dev     # Vite dev
+npm run build   # production build
+
+# backend
+php artisan migrate
+php artisan db:seed
+php artisan test
+
+# Running front end and back end
+composer run dev
+```
+
+## Database
+
+* **Engine:** SQLite (single file DB at `database/database.sqlite`)
+
+## Deployment
+
+* Pastikan `.env` menggunakan path absolut ke `database.sqlite` di server.
+* Build frontend: `npm run build`.
+* Configure web server (Nginx/Apache) to serve Laravel public path and Vite assets.
+
+
+
+
+##
+
+# Daftar Fitur 
+## 1. Pengelolaan Data Utama
+
+* **Namespace**
+
+  * Menambahkan Namespace baru.
+  * Menampilkan daftar Namespace.
+  * Memperbarui informasi Namespace.
+  * Menghapus Namespace.
+
+* **Service**
+
+  * Menambahkan Service baru yang terkait dengan suatu Namespace.
+  * Menampilkan daftar Service pada Namespace tertentu.
+  * Memperbarui informasi Service.
+  * Menghapus Service.
+
+* **Service Environment**
+
+  * Menambahkan Environment pada Service (contoh: development, staging, production).
+  * Menampilkan daftar Service Environment.
+  * Memperbarui informasi Service Environment.
+  * Menghapus Service Environment.
+
+* **Channel**
+
+  * Menambahkan Channel komunikasi (contoh: Email, Slack, Webhook).
+  * Menampilkan daftar Channel.
+  * Memperbarui informasi Channel.
+  * Menghapus Channel.
+
+* **Configuration**
+
+  * Menambahkan Konfigurasi yang terkait dengan Service Environment dan Channel.
+  * Menampilkan daftar Konfigurasi.
+  * Memperbarui Konfigurasi.
+  * Menghapus Konfigurasi.
+
+---
+
+## 2. Pengaturan Hak Akses 
+
+* **Peran Admin**
+
+  * Memiliki akses penuh untuk mengelola semua data (Namespace, Service, Service Environment, Channel, Configuration).
+
+* **Peran Pengguna Biasa**
+
+  * Memiliki akses penuh untuk resource Configuration, dan Read Only untuk Service Environment dan Channel 
+
+---
+
+## 3. Autentikasi dan Registrasi
+
+* Registrasi pengguna dengan peran pengguna biasa.
+* Login sebagai pengguna biasa atau admin.
+* Registrasi pengguna dengan peran pengguna admin, untuk mengaktifkan fitur ini diharap memberikan konfigurasi SMTP dilaravel environment nya. Proses registrasi admin diperlukan approval dari email developer atau email yang dikonfigurasi laravel environment nya.
+* Terdapat seeder yang menyediakan data pengguna awal
+
+---
+
+## 4. Konfigurasi Email (SMTP Laravel)
+
+Agar sistem berjalan lancar dalam mengirim email verifikasi , reset kata sandi, dan fitur register admin.
+
+Konfigurasi standar pada file `.env` Laravel:
+
+```
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.provider.com
+MAIL_PORT=587
+MAIL_USERNAME=nama_pengguna
+MAIL_PASSWORD=katasandi
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@domainanda.com
+MAIL_FROM_NAME="Nama Aplikasi"
+```
