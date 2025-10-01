@@ -38,7 +38,8 @@ class DatabaseSeeder extends Seeder
             Namespaces::truncate();
             Environments::truncate();
             Channels::truncate();
-            Namespaces::truncate();
+            RolesPermissions::truncate(); // Add this
+            Users::truncate(); // Add this
             Roles::truncate();
             Permissions::truncate();
             Schema::enableForeignKeyConstraints();
