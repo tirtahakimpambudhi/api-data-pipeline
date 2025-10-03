@@ -17,6 +17,8 @@ services:
     #      composer remove fakerphp/faker --no-interaction --no-progress &&
     #      php-fpm
     #    "     # override command in dockerfile where need migrate and seed
+    volumes:
+      - "./database/database.sqlite:/var/www/database/database.sqlite" ## Make sure the file database.sqlite exists
     healthcheck:
       test: ["CMD-SHELL", "netstat -an | grep -q ':9000' || exit 1"]
       interval: 90s
@@ -35,7 +37,7 @@ services:
       dockerfile: ./Dockerfile
       target: nginxapp
     networks: [app-network]
-    depends_on: 
+    depends_on:
       app:
         condition: service_healthy
     ports:
