@@ -37,7 +37,8 @@ class DevSeeder extends Seeder
             Namespaces::truncate();
             Environments::truncate();
             Channels::truncate();
-            Namespaces::truncate();
+            RolesPermissions::truncate(); // Add this
+            Users::truncate(); // Add this
             Roles::truncate();
             Permissions::truncate();
             Schema::enableForeignKeyConstraints();
@@ -154,8 +155,13 @@ class DevSeeder extends Seeder
 
             Users::factory(4)->state(['role_id' => $slaveRoleId[0]])->create();
             Users::factory(1)->state(['role_id' => $almightyRoleId[0]])->create();
-            Users::factory(1)->state(['role_id' => $almightyRoleId[0], 'email' => 'admin@gmail.com', 'password' => Hash::make("admin1234")])->create();
-            Users::factory(1)->state(['role_id' => $slaveRoleId[0], 'email' => 'user@gmail.com', 'password' => Hash::make("user1234")])->create();
+            $adminEmail = env('ADMIN_EMAIL');
+            $adminPassword = env('ADMIN_PASSWORD');
+            $adminUsername = env('ADMIN_USERNAME');
+
+            if ($adminEmail && $adminPassword && $adminUsername) {
+                Users::factory(1)->state(['role_id' => $almightyRoleId[0], 'email' => $adminEmail, 'password' => Hash::make($adminPassword), 'name' => $adminUsername])->create();
+            }
             DB::commit();
 
 
