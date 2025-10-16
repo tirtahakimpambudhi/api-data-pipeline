@@ -38,7 +38,8 @@ class DatabaseSeeder extends Seeder
             Namespaces::truncate();
             Environments::truncate();
             Channels::truncate();
-            Namespaces::truncate();
+            RolesPermissions::truncate(); // Add this
+            Users::truncate(); // Add this
             Roles::truncate();
             Permissions::truncate();
             Schema::enableForeignKeyConstraints();
@@ -152,7 +153,13 @@ class DatabaseSeeder extends Seeder
                     ...$this->crossComboArr($slavePermissionIds, $slaveRoleId, 'permission_id', 'role_id')
                 ))
                 ->create();
+            $adminEmail = env('ADMIN_EMAIL');
+            $adminPassword = env('ADMIN_PASSWORD');
+            $adminUsername = env('ADMIN_USERNAME');
 
+            if ($adminEmail && $adminPassword && $adminUsername) {
+                Users::factory(1)->state(['role_id' => $almightyRoleId[0], 'email' => $adminEmail, 'password' => \Illuminate\Support\Facades\Hash::make($adminPassword), 'name' => $adminUsername])->create();
+            }
             DB::commit();
 
 
