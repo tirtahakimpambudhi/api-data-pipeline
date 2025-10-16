@@ -18,7 +18,6 @@ use App\Models\Services;
 use App\Models\ServicesEnvironments;
 use App\Models\Users;
 use App\Traits\Helpers;
-use Faker\Generator as Faker;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Database\Seeder;
@@ -30,7 +29,7 @@ use Illuminate\Support\Facades\Schema;
 class ProdSeeder extends Seeder
 {
     use Helpers;
-    public function run(Faker $faker): void
+    public function run(): void
     {
         try {
             Schema::disableForeignKeyConstraints();
@@ -134,3 +133,4 @@ class ProdSeeder extends Seeder
         }
     }
 }
+
