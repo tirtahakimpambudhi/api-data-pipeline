@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import configurationRoute from '@/routes/configurations/index';
 import { Channel, ServiceEnvironment } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useFlash } from '@/hooks/use-flash';
 import { Toaster } from 'sonner';
 import {
@@ -37,9 +37,43 @@ export default function CreateConfigurationPage({
   const { data, setData, post, processing, errors, reset, clearErrors } = useForm<{
     service_environment_id: string | number | '';
     channel_id: string | number | '';
+    source: any,
+    destination: any,
+    cron_expression: string
   }>({
     service_environment_id: '',
     channel_id: '',
+    source: {
+        'url': '',
+        'method': '',
+        'headers': {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        'body': null,
+        'timeout': 10,
+        'retry_count': 2
+    },
+    destination: {
+        'url': '',
+        'method': '',
+        'headers': {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        'extract': {
+            'author': '',
+            'quote': ''
+        },
+        'foreach': null,
+        'body_template': JSON.stringify({
+
+        }),
+        'timeout': 20,
+        'retry_count': 2,
+        'range_per_request': 2
+    },
+    cron_expression: ''
   });
 
   const [openSe, setOpenSe] = React.useState(false);
@@ -47,7 +81,7 @@ export default function CreateConfigurationPage({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post(configurationRoute.store().url, { preserveScroll: true });
+    post(configurationRoute.store().url, { preserveScroll: true, forceFormData: true });
   };
 
   const handleReset = () => {
@@ -128,7 +162,7 @@ export default function CreateConfigurationPage({
                               key={id}
                               value={label}
                               onSelect={() => {
-                                setData('service_environment_id', id); 
+                                setData('service_environment_id', id);
                                 setOpenSe(false);
                               }}
                             >
@@ -175,7 +209,7 @@ export default function CreateConfigurationPage({
                           return (
                             <CommandItem
                               key={id}
-                              value={ch.name} 
+                              value={ch.name}
                               onSelect={() => {
                                 setData('channel_id', id);
                                 setOpenCh(false);
@@ -194,6 +228,11 @@ export default function CreateConfigurationPage({
               {errors.channel_id && (
                 <p className="mt-1 text-sm text-destructive">{errors.channel_id}</p>
               )}
+              {
+                errors.source && (
+                    errors.source
+                  )
+              }
             </div>
 
             <div className="flex items-center justify-between">
