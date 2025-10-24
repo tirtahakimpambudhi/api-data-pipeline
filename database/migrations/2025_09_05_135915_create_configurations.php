@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('service_environment_id')->references('id')->on('services_environments')->onDelete('cascade');
             $table->foreignId('channel_id')->references('id')->on('channels')->onDelete('cascade');
-            $table->unique(['service_environment_id', 'channel_id']);
+//            $table->unique(['service_environment_id', 'channel_id']);
+            $table->text('source')->nullable(false);
+            $table->text('destination')->nullable(false);
+            $table->string('cron_expression')->nullable(false);
             $table->timestamps();
         });
     }
