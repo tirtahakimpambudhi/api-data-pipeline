@@ -7,6 +7,9 @@ use App\Constants\ChannelsTypes;
 use App\Constants\EnvironmentsTypes;
 use App\Constants\ResourcesTypes;
 use App\Constants\RolesTypes;
+use App\Http\Resources\Configurations\Destination;
+use App\Http\Resources\Configurations\Source;
+use Symfony\Component\HttpFoundation\Request as RequestAlias;
 use App\Models\Channels;
 use App\Models\Configurations;
 use App\Models\Environments;
@@ -110,13 +113,6 @@ class DevSeeder extends Seeder
                 ->create();
             $servicesEnvironmentsIds = $servicesEnvironments->pluck('id')->all();
             $channelsIds = $channels->pluck('id')->all();
-            $configurations = Configurations::factory()
-                ->count(count($servicesEnvironmentsIds) * count($channelsIds))
-                ->state(new Sequence(
-                    ...$this->crossComboArr($servicesEnvironmentsIds, $channelsIds, 'service_environment_id', 'channel_id')
-                ))
-                ->create();
-
 
             $permissionsCount = count(ResourcesTypes::all()) * count(ActionsTypes::all());
             $permissions = Permissions::factory($permissionsCount)->create();
