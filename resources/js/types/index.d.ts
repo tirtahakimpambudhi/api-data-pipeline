@@ -90,6 +90,26 @@ export interface Configuration {
     channel_id: number;
     service_environment?: ServiceEnvironment;
     channel?: Channel;
+    destination?: {
+        body_template?: string;
+        extract: object;
+        foreach: string;
+        headers: object;
+        method: string;
+        rangePerRequest: number;
+        retryCount: number;
+        timeout: number;
+        url: string;
+    };
+    source?: {
+        body: object;
+        headers: object;
+        method: string;
+        retryCount: number;
+        timeout: number;
+        url: string;
+    };
+    cron_expression: string;
     created_at: string;
     updated_at?: string;
 }
@@ -116,8 +136,7 @@ export type PaginatedResponse<T> = {
 };
 
 export type Filters = {
-  search?: string;
-  page?: number;
-  size?: number;
+    search?: string;
+    page?: number;
+    size?: number;
 };
-
