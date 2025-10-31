@@ -346,7 +346,7 @@ class ConfigurationsServiceImpl implements ConfigurationsService
             $row = $this->getOrFail($id);
 
             $value = $data->validated();
-            $this->logger->debug("Validated update payload", $value);
+            $this->logger->debug("Validated update payload", ['value'  => $value]);
 
             $payload = [];
 
@@ -425,9 +425,9 @@ class ConfigurationsServiceImpl implements ConfigurationsService
             } else {
                 $this->logger->info("No source/destination changes detected; skipping connectivity validation");
             }
-
+            $this->logger->info("Applied update", ['payload' => $payload, 'value' => $data->array()]);
             if (!empty($payload)) {
-                $this->logger->debug("Applying partial update", $payload);
+                $this->logger->debug("Applying partial update", ['payload' => $payload]);
                 $row->fill($payload)->save();
             } else {
                 $this->logger->info("No field provided to update; nothing changed");
