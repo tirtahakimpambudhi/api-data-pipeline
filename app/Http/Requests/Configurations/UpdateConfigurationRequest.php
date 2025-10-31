@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Configurations;
 
+use App\Rules\CronRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Exceptions\ValidationServiceException;
@@ -19,7 +20,7 @@ class UpdateConfigurationRequest extends FormRequest
         return [
             'service_environment_id' => ['sometimes', 'integer', 'exists:services_environments,id'],
             'channel_id'             => ['sometimes', 'integer', 'exists:channels,id'],
-            'cron_expression'        => ['sometimes', 'string'],
+            'cron_expression'        => ['sometimes', 'string', new CronRule()],
 
             // ---- SOURCE (opsional) ----
             'source'                 => ['sometimes', 'required_array_keys:url,method,headers,body,timeout,retry_count'],
