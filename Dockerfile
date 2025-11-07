@@ -33,9 +33,11 @@ COPY --from=composerbase /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-# 4) Copy dependency files
+# 4) Copy dependency files and entrypoint file
 COPY composer.json composer.lock ./
 COPY package.json package-lock.json ./
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # 5) Install dependencies
 RUN set -eux; \
@@ -74,7 +76,7 @@ ENV APP_DEBUG=false \
     DB_DATABASE=/var/www/database/database.sqlite
 
 EXPOSE 9000
-CMD ["php-fpm"]
+CMD ["/usr/local/bin/entrypoint.sh"]
 
 # ---------- Nginx ----------
 FROM nginx:alpine AS nginxapp

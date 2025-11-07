@@ -8,23 +8,23 @@ services:
       context: .
       dockerfile: ./Dockerfile
       target: phpapp
-    command: [ "sh", "-c", "php artisan migrate --force && php-fpm" ]  # override command in dockerfile to running migrate
+    command: ["sh", "-c", "php artisan migrate --force && exec /usr/local/bin/entrypoint.sh"]
     # command: >
     #    sh -c "
     #      composer require fakerphp/faker --no-interaction --no-progress --prefer-dist &&
     #      php artisan migrate --force &&
     #      php artisan db:seed --class=ProdSeeder --force &&
     #      composer remove fakerphp/faker --no-interaction --no-progress &&
-    #      php-fpm
+    #      exec /usr/local/bin/entrypoint.sh
     #    "     # override command in dockerfile where need migrate and seed
     volumes:
       - "./database/database.sqlite:/var/www/database/database.sqlite" ## Make sure the file database.sqlite exists
     healthcheck:
-      test: ["CMD-SHELL", "netstat -an | grep -q ':9000' || exit 1"]
-      interval: 90s
+      test: ["CMD-SHELL", "pgrep -f 'php-fpm' >/dev/null && pgrep -f 'artisan schedule:work' >/dev/null"]
+      interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 90s
+      start_period: 60s
     env_file:
       - .env
 

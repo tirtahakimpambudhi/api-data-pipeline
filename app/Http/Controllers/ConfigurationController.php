@@ -11,16 +11,12 @@ use App\Http\Requests\Configurations\CreateConfigurationRequest;
 use App\Http\Requests\Configurations\UpdateConfigurationRequest;
 use App\Http\Requests\General\PaginationRequest;
 use App\Http\Requests\General\SearchPaginationRequest;
-use App\Models\Channels;
-use App\Models\ServicesEnvironments;
 use App\Service\Contracts\ChannelsService;
 use App\Service\Contracts\ConfigurationsService;
 use App\Service\Contracts\ServicesEnvironmentsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
-use Inertia\Response;
 use Throwable;
 
 class ConfigurationController extends Controller

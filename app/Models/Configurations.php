@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Casts\DestinationJsonCast;
+use App\Casts\SourceJsonCast;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class Configurations extends Model
 {
@@ -16,10 +17,17 @@ class Configurations extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         'service_environment_id',
-        'channel_id'
+        'channel_id',
+        'source',
+        'destination',
+        'cron_expression',
     ];
 
     protected $appends = ['name'];
+    protected $casts = [
+        'source' => SourceJsonCast::class,
+        'destination' => DestinationJsonCast::class,
+    ];
 
     protected function name(): Attribute
     {
