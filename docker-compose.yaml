@@ -9,12 +9,12 @@ services:
       dockerfile: ./Dockerfile
       target: phpapp
 #    command: ["sh", "-c", "php artisan migrate --force && exec /usr/local/bin/entrypoint.sh"]
-    command: >
-          sh -c "
-            php artisan migrate:fresh --force &&
-            php artisan db:seed --class=ProdSeeder --force &&
-            exec /usr/local/bin/entrypoint.sh
-          "
+#    command: >
+#          sh -c "
+#            php artisan migrate:fresh --force &&
+#            php artisan db:seed --class=ProdSeeder --force &&
+#            exec /usr/local/bin/entrypoint.sh
+#          "
     # override command in dockerfile where need migrate and seed
     volumes:
       - "./database/database.sqlite:/var/www/database/database.sqlite" ## Make sure the file database.sqlite exists
