@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\AppSetup;
 use App\Console\Commands\RunConfiguration;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands([
         RunConfiguration::class,
+        AppSetup::class,
     ])
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);

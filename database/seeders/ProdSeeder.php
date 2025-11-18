@@ -18,7 +18,6 @@ use App\Models\Services;
 use App\Models\ServicesEnvironments;
 use App\Models\Users;
 use App\Traits\Helpers;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -29,6 +28,48 @@ use Illuminate\Support\Facades\Schema;
 class ProdSeeder extends Seeder
 {
     use Helpers;
+
+    private function seedPermissions(int $count): array
+    {
+        $pairs = $this->crossComboArr(
+            ResourcesTypes::all(),
+            ActionsTypes::all(),
+            'resource_type',
+            'action',
+        );
+
+        $selectedPairs = array_slice($pairs, 0, min($count, count($pairs)));
+
+        $permissions = [];
+        foreach ($selectedPairs as $pair) {
+            $permissions[] = [
+                'resource_type' => $pair['resource_type'],
+                'action'        => $pair['action'],
+                'description'   => 'Example Description',
+            ];
+        }
+
+        return $permissions;
+    }
+
+
+    function seedRolesPermissions(int $count, array $permissionsIds,array $roleId): array
+    {
+        $pairs = $this->crossComboArr($permissionsIds, $roleId, 'permission_id', 'role_id');
+
+        $selectedPairs = array_slice($pairs, 0, min($count, count($pairs)));
+
+        $rolesPermissions = [];
+        foreach ($selectedPairs as $pair) {
+            $rolesPermissions[] = [
+                'permission_id' => $pair['permission_id'],
+                'role_id'        => $pair['role_id'],
+            ];
+        }
+
+        return $rolesPermissions;
+    }
+
     public function run(): void
     {
         try {
@@ -37,93 +78,105 @@ class ProdSeeder extends Seeder
             Namespaces::truncate();
             Environments::truncate();
             Channels::truncate();
-            RolesPermissions::truncate(); // Add this
-            Users::truncate(); // Add this
+            RolesPermissions::truncate();
+            Users::truncate();
             Roles::truncate();
             Permissions::truncate();
             Schema::enableForeignKeyConstraints();
         } catch (\Throwable $e) {
-            DB::rollBack();
-            echo "Error when reset all table: ". $e->getMessage() . "\n";
+            echo "Error when reset all table: " . $e->getMessage() . "\n";
         }
 
         DB::beginTransaction();
 
         try {
-            $roles = Roles::factory()
-                ->count(count(RolesTypes::all()))
-                ->state(new Sequence(
-                    ['name' => RolesTypes::ALMIGHTY, 'description' => 'Can Read and Write All Features'],
-                    ['name' => RolesTypes::SLAVE, 'description' => 'Can Read and Write Configurations'],
-                ))
-                ->create();
+            // 1. Seed roles
+            $rolesData = [
+                ['name' => RolesTypes::ALMIGHTY, 'description' => 'Can Read and Write All Features'],
+                ['name' => RolesTypes::SLAVE,    'description' => 'Can Read and Write Configurations'],
+            ];
 
-            $channels = Channels::factory()
-                ->count(count(ChannelsTypes::all()))
-                ->state(new Sequence(
-                    ['name' => ChannelsTypes::DISCORD],
-                    ['name' => ChannelsTypes::TELEGRAM],
-                    ['name' => ChannelsTypes::WHATSAPP],
-                ))
-                ->create();
+            Roles::insert($rolesData);
+            $roles = Roles::whereIn('name', [RolesTypes::ALMIGHTY, RolesTypes::SLAVE])->get();
 
-            $environments = Environments::factory()
-                ->count(count(EnvironmentsTypes::all()))
-                ->state(new Sequence(
-                    ['name' => EnvironmentsTypes::PROD],
-                    ['name' => EnvironmentsTypes::DEV],
-                    ['name' => EnvironmentsTypes::STAGING],
-                    ['name' => EnvironmentsTypes::LOCAL],
-                    ['name' => EnvironmentsTypes::TEST],
-                ))
-                ->create();
+            // 2. Seed channels
+            $channelsData = [
+                ['name' => ChannelsTypes::DISCORD],
+                ['name' => ChannelsTypes::TELEGRAM],
+                ['name' => ChannelsTypes::WHATSAPP],
+            ];
+            Channels::insert($channelsData);
 
+            // 3. Seed environments
+            $environmentsData = [
+                ['name' => EnvironmentsTypes::PROD],
+                ['name' => EnvironmentsTypes::DEV],
+                ['name' => EnvironmentsTypes::STAGING],
+                ['name' => EnvironmentsTypes::LOCAL],
+                ['name' => EnvironmentsTypes::TEST],
+            ];
+            Environments::insert($environmentsData);
+
+            // 4. Seed permissions
             $permissionsCount = count(ResourcesTypes::all()) * count(ActionsTypes::all());
-            $permissions = Permissions::factory($permissionsCount)->create();
+            $permissionsData  = $this->seedPermissions($permissionsCount);
 
+            Permissions::insert($permissionsData);
+            $permissions = Permissions::get();
 
-            $almightyPermissionsIds = $permissions->filter(function ($value, $key) {
-                return in_array($value->resource_type, [ResourcesTypes::NAMESPACES, ResourcesTypes::SERVICES, ResourcesTypes::CHANNELS, ResourcesTypes::ENVIRONMENTS, ResourcesTypes::SERVICES_ENVIRONMENTS, ResourcesTypes::CONFIGURATIONS]);
-            } )->pluck('id')->all();
+            // 5. Calculate role & permission IDs
+            $almightyPermissionsIds = $permissions->filter(function ($value) {
+                return in_array($value->resource_type, [
+                    ResourcesTypes::NAMESPACES,
+                    ResourcesTypes::SERVICES,
+                    ResourcesTypes::CHANNELS,
+                    ResourcesTypes::ENVIRONMENTS,
+                    ResourcesTypes::SERVICES_ENVIRONMENTS,
+                    ResourcesTypes::CONFIGURATIONS,
+                ]);
+            })->pluck('id')->all();
 
-            $almightyRoleId= $roles->filter(function ($value, $key) {
-                return $value->name == RolesTypes::ALMIGHTY;
-            } )->pluck('id')->all();
+            $slavePermissionIds = $permissions->filter(function ($value) {
+                return
+                    $value->resource_type == ResourcesTypes::CONFIGURATIONS ||
+                    ($value->resource_type == ResourcesTypes::SERVICES_ENVIRONMENTS && $value->action == ActionsTypes::READ) ||
+                    ($value->resource_type == ResourcesTypes::CHANNELS && $value->action == ActionsTypes::READ);
+            })->pluck('id')->all();
 
-            $slaveRoleId= $roles->filter(function ($value, $key) {
-                return $value->name == RolesTypes::SLAVE;
-            } )->pluck('id')->all();
+            $almightyRoleId = $roles->firstWhere('name', RolesTypes::ALMIGHTY)?->id;
+            $slaveRoleId    = $roles->firstWhere('name', RolesTypes::SLAVE)?->id;
 
-            $slavePermissionIds = $permissions->filter(function ($value, $key) {
-                return $value->resource_type == ResourcesTypes::CONFIGURATIONS || ($value->resource_type == ResourcesTypes::SERVICES_ENVIRONMENTS && $value->action == ActionsTypes::READ) || ($value->resource_type == ResourcesTypes::CHANNELS && $value->action == ActionsTypes::READ);
-            } )->pluck('id')->all();
+            // 6. Seed roles_permissions
+            $almightyRolePerms = $this->seedRolesPermissions(
+                count($almightyPermissionsIds),
+                $almightyPermissionsIds,
+                [$almightyRoleId],
+            );
 
+            $slaveRolePerms = $this->seedRolesPermissions(
+                count($slavePermissionIds),
+                $slavePermissionIds,
+                [$slaveRoleId],
+            );
 
-            RolesPermissions::factory()
-                ->count(count($almightyPermissionsIds))
-                ->state(new Sequence(
-                    ...$this->crossComboArr($almightyPermissionsIds, $almightyRoleId, 'permission_id', 'role_id')
-                ))
-                ->create();
+            RolesPermissions::insert($almightyRolePerms);
+            RolesPermissions::insert($slaveRolePerms);
 
-            RolesPermissions::factory()
-                ->count(count($slavePermissionIds))
-                ->state(new Sequence(
-                    ...$this->crossComboArr($slavePermissionIds, $slaveRoleId, 'permission_id', 'role_id')
-                ))
-                ->create();
-
-            $adminEmail = env('ADMIN_EMAIL');
+            // 7. Seed admin user
+            $adminEmail    = env('ADMIN_EMAIL');
             $adminPassword = env('ADMIN_PASSWORD');
             $adminUsername = env('ADMIN_USERNAME');
 
-            if ($adminEmail && $adminPassword && $adminUsername) {
-                Users::factory(1)->state(['role_id' => $almightyRoleId[0], 'email' => $adminEmail, 'password' => Hash::make($adminPassword), 'name' => $adminUsername])->create();
+            if ($adminEmail && $adminPassword && $adminUsername && $almightyRoleId) {
+                Users::query()->create([
+                    'role_id'  => $almightyRoleId,
+                    'email'    => $adminEmail,
+                    'password' => Hash::make($adminPassword),
+                    'name'     => $adminUsername,
+                ]);
             }
 
             DB::commit();
-
-
         } catch (UniqueConstraintViolationException $e) {
             DB::rollBack();
             echo "Conflict (unique constraint): {$e->getMessage()}\n";
@@ -132,5 +185,6 @@ class ProdSeeder extends Seeder
             echo $e->getMessage() . "\n";
         }
     }
+
 }
 
