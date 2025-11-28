@@ -70,16 +70,24 @@ class Users extends Authenticatable
     public function hasPermission(string $resourceType, string $action): bool {
         if (! $this->role_id) return false;
 
-        $key = "role_perms:{$this->role_id}";
-        $abilities = Cache::rememberForever($key, function () {
-            return Permissions::query()
-                ->select('resource_type','action')
-                ->join('roles_permissions','permissions.id','=','roles_permissions.permission_id')
-                ->where('roles_permissions.role_id',$this->role_id)
-                ->get()
-                ->map(fn($p) => "{$p->resource_type}.{$p->action}")
-                ->all();
-        });
+//        $key = "role_perms:{$this->role_id}";
+//        $abilities = Cache::rememberForever($key, function () {
+//            return Permissions::query()
+//                ->select('resource_type','action')
+//                ->join('roles_permissions','permissions.id','=','roles_permissions.permission_id')
+//                ->where('roles_permissions.role_id',$this->role_id)
+//                ->get()
+//                ->map(fn($p) => "{$p->resource_type}.{$p->action}")
+//                ->all();
+//        });
+
+        $abilities = Permissions::query()
+            ->select('resource_type','action')
+            ->join('roles_permissions','permissions.id','=','roles_permissions.permission_id')
+            ->where('roles_permissions.role_id',$this->role_id)
+            ->get()
+            ->map(fn($p) => "{$p->resource_type}.{$p->action}")
+            ->all();
 
         return in_array("{$resourceType}.{$action}", $abilities, true);
     }
