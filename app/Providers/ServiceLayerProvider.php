@@ -3,8 +3,17 @@
 namespace App\Providers;
 
 
+use App\Models\Permissions;
+use App\Models\Roles;
+use App\Models\Users;
+use App\Service\Contracts\PermissionsService;
+use App\Service\Contracts\RolesService;
 use App\Service\Contracts\TransformService;
+use App\Service\Contracts\UsersService;
+use App\Service\Implements\PermissionsServiceImpl;
+use App\Service\Implements\RolesServiceImpl;
 use App\Service\Implements\TransformServiceImpl;
+use App\Service\Implements\UsersServiceImpl;
 use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
 
@@ -98,6 +107,42 @@ class ServiceLayerProvider extends ServiceProvider implements DeferrableProvider
                 $app->make(TransformService::class),
             );
         });
+
+        // Roles
+        $this->app->bind(
+            RolesService::class,
+            function ($app) {
+                return new RolesServiceImpl(
+                    $app->make(AuthFactory::class),
+                    $app->make(Roles::class),
+                    $app->make(Logger::class),
+                );
+            }
+        );
+
+        // Permissions
+        $this->app->bind(
+          PermissionsService::class,
+          function ($app) {
+              return new PermissionsServiceImpl(
+                  $app->make(AuthFactory::class),
+                  $app->make(Permissions::class),
+                  $app->make(Logger::class),
+              );
+          }
+        );
+
+        // Users
+        $this->app->bind(
+            UsersService::class,
+            function ($app) {
+                return new UsersServiceImpl(
+                    $app->make(AuthFactory::class),
+                    $app->make(Users::class),
+                    $app->make(Logger::class),
+                );
+            }
+        );
     }
 
     public function boot(): void
@@ -114,7 +159,10 @@ class ServiceLayerProvider extends ServiceProvider implements DeferrableProvider
             ServicesEnvironmentsService::class,
             ChannelsService::class,
             ConfigurationsService::class,
-            TransformService::class
+            TransformService::class,
+            RolesService::class,
+            PermissionsService::class,
+            UsersService::class,
         ];
     }
 }
