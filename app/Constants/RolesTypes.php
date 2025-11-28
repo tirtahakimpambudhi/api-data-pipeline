@@ -7,8 +7,8 @@ use App\Traits\Helpers;
 class RolesTypes
 {
     use Helpers;
-    public const ALMIGHTY = 'almighty';
-    public const SLAVE    = 'slave';
+    public const ALMIGHTY = 'admin';
+    public const SLAVE    = 'user';
 
 
     public static function all(): array
