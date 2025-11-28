@@ -162,6 +162,9 @@ class ConfigurationsServiceImpl implements ConfigurationsService
                 'count' => $result instanceof Collection ? $result->count() : $result->total()
             ]);
             return $result;
+        } catch (AppServiceException $e) {
+            $this->logger->error("AppServiceException: {$e->getMessage()}");
+            throw $e;
         } catch (\Throwable $e) {
             $this->logger->error("Error retrieving configurations", [
                 'message' => $e->getMessage(),
@@ -212,6 +215,9 @@ class ConfigurationsServiceImpl implements ConfigurationsService
             ]);
 
             return $result;
+        } catch (AppServiceException $e) {
+            $this->logger->error("AppServiceException: {$e->getMessage()}");
+            throw $e;
         } catch (\Throwable $e) {
             $this->logger->error("Error during configuration search", [
                 'message' => $e->getMessage(),
@@ -519,6 +525,9 @@ class ConfigurationsServiceImpl implements ConfigurationsService
             }
             $this->logger->info("Configuration retrieved successfully", ['id' => $row->id]);
             return collect($row);
+        } catch (AppServiceException $e) {
+            $this->logger->error("AppServiceException: {$e->getMessage()}");
+            throw $e;
         } catch (\Throwable $e) {
             $this->logger->error("Error retrieving configuration by ID", [
                 'id' => $id,

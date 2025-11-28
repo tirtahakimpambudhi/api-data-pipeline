@@ -101,6 +101,9 @@ class ChannelsServiceImpl implements ChannelsService
                 'count' => $result instanceof Collection ? $result->count() : $result->total(),
             ]);
             return $result;
+        } catch (AppServiceException $e) {
+            $this->logger->error("AppServiceException: {$e->getMessage()}");
+            throw $e;
         } catch (\Throwable $e) {
             $this->logger->error("Error retrieving channels", [
                 'message' => $e->getMessage(),
@@ -146,6 +149,9 @@ class ChannelsServiceImpl implements ChannelsService
                 'count' => $result instanceof Collection ? $result->count() : $result->total(),
             ]);
             return $result;
+        } catch (AppServiceException $e) {
+            $this->logger->error("AppServiceException: {$e->getMessage()}");
+            throw $e;
         } catch (\Throwable $e) {
             $this->logger->error("Error during channel search", [
                 'message' => $e->getMessage(),
@@ -185,6 +191,9 @@ class ChannelsServiceImpl implements ChannelsService
                 'code' => $e->getCode(),
             ]);
             throw new InternalServiceException("Error when creating channel: {$e->getMessage()}");
+        } catch (AppServiceException $e) {
+            $this->logger->error("AppServiceException: {$e->getMessage()}");
+            throw $e;
         } catch (\Throwable $e) {
             $this->logger->critical("Unexpected error during channel creation", [
                 'message' => $e->getMessage(),
@@ -232,6 +241,9 @@ class ChannelsServiceImpl implements ChannelsService
                 'code' => $e->getCode(),
             ]);
             throw new InternalServiceException("Error when updating channel: {$e->getMessage()}");
+        } catch (AppServiceException $e) {
+            $this->logger->error("AppServiceException: {$e->getMessage()}");
+            throw $e;
         } catch (\Throwable $e) {
             $this->logger->error("Error updating channel", [
                 'id' => $id,
@@ -251,6 +263,9 @@ class ChannelsServiceImpl implements ChannelsService
             $row->delete();
             $this->logger->info("Channel deleted successfully", ['id' => $id]);
             return collect(['id' => $id, 'deleted' => true]);
+        } catch (AppServiceException $e) {
+            $this->logger->error("AppServiceException: {$e->getMessage()}");
+            throw $e;
         } catch (\Throwable $e) {
             $this->logger->error("Error deleting channel", [
                 'id' => $id,
@@ -281,6 +296,9 @@ class ChannelsServiceImpl implements ChannelsService
             ]);
 
             return collect($row);
+        } catch (AppServiceException $e) {
+            $this->logger->error("AppServiceException: {$e->getMessage()}");
+            throw $e;
         } catch (\Throwable $e) {
             $this->logger->error("Error retrieving channel by ID", [
                 'id' => $id,

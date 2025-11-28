@@ -111,7 +111,6 @@ class ServicesEnvironmentsServiceImpl implements ServicesEnvironmentsService
 
             return $result;
         } catch (AppServiceException $e) {
-            // biarkan gelembung; ini error yang diharapkan layer service
             throw $e;
         } catch (\Throwable $e) {
             $this->logger->error('Error retrieving ServiceEnvironments', [
