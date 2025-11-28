@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Constants\RolesTypes;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\Permissions;
 use App\Models\Roles;
 use App\Models\Users;
@@ -33,16 +34,12 @@ class RegisteredUserController extends Controller
      * @throws \Illuminate\Validation\ValidationException
      */
 
-    public function store(Request $request): RedirectResponse
+    public function store(RegisterRequest $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:' . Users::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $value = $request->validated();
 
         /** @var Users $user */
-        $user = DB::transaction(function () use ($request) {
+        $user = DB::transaction(function () use ($value) {
             /** @var Roles $role */
             $role = Roles::query()->firstOrCreate(
                 ['name' => RolesTypes::SLAVE],
@@ -69,9 +66,9 @@ class RegisteredUserController extends Controller
             $role->permissions()->syncWithoutDetaching($permissionIds);
 
             $user = Users::create([
-                'name'     => $request->name,
-                'email'    => $request->email,
-                'password' => Hash::make($request->password),
+                'name'     => $value['name'],
+                'email'    => $value['email'],
+                'password' => Hash::make($value['password']),
                 'role_id'  => $role->getKey(),
             ]);
 
