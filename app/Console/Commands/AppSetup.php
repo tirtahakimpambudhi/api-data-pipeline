@@ -58,14 +58,19 @@ class AppSetup extends Command
 
     private function ensureRolesExist(): void
     {
-        Roles::updateOrCreate(
-            ['name' => RolesTypes::ALMIGHTY],
-            ['description' => 'Can Read and Write All Features'],
-        );
-
-        Roles::updateOrCreate(
-            ['name' => RolesTypes::SLAVE],
-            ['description' => 'Can Read and Write Configurations'],
+        Roles::upsert(
+            [
+                [
+                    'name'        => RolesTypes::ALMIGHTY,
+                    'description' => 'Can Read and Write All Features',
+                ],
+                [
+                    'name'        => RolesTypes::SLAVE,
+                    'description' => 'Can Read and Write Configurations',
+                ],
+            ],
+            ['name'],           // unique key
+            ['description'],    // column to update
         );
 
         $this->info('- Roles checked.');
@@ -141,14 +146,7 @@ class AppSetup extends Command
         }
 
         $almightyPermissionsIds = $permissions->filter(function ($value) {
-            return in_array($value->resource_type, [
-                ResourcesTypes::NAMESPACES,
-                ResourcesTypes::SERVICES,
-                ResourcesTypes::CHANNELS,
-                ResourcesTypes::ENVIRONMENTS,
-                ResourcesTypes::SERVICES_ENVIRONMENTS,
-                ResourcesTypes::CONFIGURATIONS,
-            ]);
+            return in_array($value->resource_type, ResourcesTypes::all());
         })->pluck('id')->all();
 
         $slavePermissionIds = $permissions->filter(function ($value) {
@@ -158,24 +156,20 @@ class AppSetup extends Command
                 ($value->resource_type == ResourcesTypes::CHANNELS && $value->action == ActionsTypes::READ);
         })->pluck('id')->all();
 
-        // Almighty role → all almightyPermissionsIds
+        // Almighty role -> all permissions
         foreach ($almightyPermissionsIds as $permId) {
-            RolesPermissions::firstOrCreate(
-                [
-                    'role_id'       => $almightyRoleId,
-                    'permission_id' => $permId,
-                ],
-            );
+            RolesPermissions::firstOrCreate([
+                'role_id'       => $almightyRoleId,
+                'permission_id' => $permId,
+            ]);
         }
 
-        // Slave role → subset permissions
+        // Slave role -> filtered permissions
         foreach ($slavePermissionIds as $permId) {
-            RolesPermissions::firstOrCreate(
-                [
-                    'role_id'       => $slaveRoleId,
-                    'permission_id' => $permId,
-                ],
-            );
+            RolesPermissions::firstOrCreate([
+                'role_id'       => $slaveRoleId,
+                'permission_id' => $permId,
+            ]);
         }
 
         $this->info('- RolesPermissions checked.');
@@ -199,13 +193,17 @@ class AppSetup extends Command
             return;
         }
 
-        Users::updateOrCreate(
-            ['email' => $adminEmail],
+        Users::upsert(
             [
-                'role_id'  => $almightyRoleId,
-                'name'     => $adminUsername,
-                'password' => Hash::make($adminPassword),
+                [
+                    'email'    => $adminEmail,
+                    'role_id'  => $almightyRoleId,
+                    'name'     => $adminUsername,
+                    'password' => Hash::make($adminPassword),
+                ],
             ],
+            ['email'],
+            ['role_id', 'name', 'password'],
         );
 
         $this->info('- Admin user checked.');
