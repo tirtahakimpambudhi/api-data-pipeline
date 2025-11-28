@@ -1,5 +1,6 @@
 import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
+import rolesRoute from '@/routes/roles';
 
 export interface Auth {
     user: User;
@@ -33,6 +34,7 @@ export interface SharedData {
 export interface User {
     id: string;
     username: string;
+    name: string;
     email: string;
     email_verified_at: string | null;
     role_id: number;
@@ -83,6 +85,20 @@ export interface ServiceEnvironment {
     updated_at?: string;
 }
 
+export interface Permission {
+    id: number;
+    resource_type: string;
+    action: string;
+    description: string;
+}
+
+export interface Role {
+    id: number;
+    name: string;
+    description: string;
+    permissions?: Permissions[];
+}
+
 export interface Configuration {
     id: number;
     name: string;
@@ -114,6 +130,25 @@ export interface Configuration {
     updated_at?: string;
 }
 
+export type PermissionResourceType =
+    | 'channels'
+    | 'configurations'
+    | 'environments'
+    | 'namespaces'
+    | 'services'
+    | 'services_environments'
+    | 'permissions'
+    | 'roles'
+    | 'roles_permissions'
+    | 'users';
+
+export interface Permission {
+    id: number;
+    resource_type: PermissionResourceType;
+    action: 'create' | 'read' | 'update' | 'delete';
+    description: string | null;
+}
+
 export interface Role {
     id: number;
     name: string;
@@ -121,12 +156,6 @@ export interface Role {
     permissions?: Permission[];
 }
 
-export interface Permission {
-    id: number;
-    resource_type: 'namespace' | 'service' | 'environment' | 'service_environment' | 'configuration' | 'channel' | 'user';
-    action: 'view' | 'edit' | 'configure' | 'deploy' | 'manage' | 'assign_roles';
-    description: string | null;
-}
 
 export type PaginatedResponse<T> = {
     data: T[];
