@@ -124,7 +124,7 @@ class DatabaseSeeder extends Seeder
 
 
             $almightyPermissionsIds = $permissions->filter(function ($value, $key) {
-                return in_array($value->resource_type, [ResourcesTypes::NAMESPACES, ResourcesTypes::SERVICES, ResourcesTypes::CHANNELS, ResourcesTypes::ENVIRONMENTS, ResourcesTypes::SERVICES_ENVIRONMENTS, ResourcesTypes::CONFIGURATIONS]);
+                return in_array($value->resource_type, ResourcesTypes::all());
             } )->pluck('id')->all();
 
             $almightyRoleId= $roles->filter(function ($value, $key) {
