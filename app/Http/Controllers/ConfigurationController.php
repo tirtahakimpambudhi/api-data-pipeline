@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Constants\ActionsTypes;
 use App\Constants\ResourcesTypes;
 use App\Exceptions\AppServiceException;
-use App\Exceptions\ConflictServiceException;
-use App\Exceptions\NotFoundServiceException;
 use App\Http\Requests\Configurations\CreateConfigurationRequest;
 use App\Http\Requests\Configurations\UpdateConfigurationRequest;
 use App\Http\Requests\General\PaginationRequest;
