@@ -766,7 +766,9 @@ trait ConfigurationUtilities
         $bodyData = $body ?? [];
 
         return match ($method) {
-            RequestAlias::METHOD_GET    => $request->get($url),
+            RequestAlias::METHOD_GET    => $request->send('GET', $url, [
+                'body' => is_string($bodyData) ? $bodyData : json_encode($bodyData),
+            ]),
             RequestAlias::METHOD_POST   => $request->post($url, $bodyData),
             RequestAlias::METHOD_PUT    => $request->put($url, $bodyData),
             RequestAlias::METHOD_PATCH  => $request->patch($url, $bodyData),
