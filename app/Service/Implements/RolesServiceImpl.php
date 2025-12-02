@@ -4,6 +4,7 @@ namespace App\Service\Implements;
 
 use App\Constants\ActionsTypes;
 use App\Constants\ResourcesTypes;
+use App\Constants\RolesTypes;
 use App\Exceptions\AppServiceException;
 use App\Exceptions\ConflictServiceException;
 use App\Exceptions\InternalServiceException;
@@ -81,7 +82,9 @@ class RolesServiceImpl implements RolesService
     {
         $this->logger->debug('Fetching Roles by ID', ['id' => $id]);
 
-        $row = $this->rolesModel->newQuery()->find($id);
+        $row = $this->rolesModel->newQuery()
+            ->whereNotIn('id', $this->defaultRoleIds())
+            ->find($id);
 
         if (!$row) {
             $this->logger->error('Roles not found', ['id' => $id]);
@@ -97,7 +100,16 @@ class RolesServiceImpl implements RolesService
         return $row;
     }
 
-    public function getAll(?PaginationRequest $data, bool $onlyRoles = false): LengthAwarePaginator|Collection
+    private function defaultRoleIds() : array
+    {
+        return $this->rolesModel->newQuery()
+            ->whereIn('name', [RolesTypes::ALMIGHTY, RolesTypes::SLAVE])
+            ->get()
+            ->pluck('id')
+            ->toArray();
+    }
+
+    public function getAll(?PaginationRequest $data, bool $onlyRoles = false,bool $showDefaultRole = true): LengthAwarePaginator|Collection
     {
         $this->logger->info('Retrieving all Roles', ['onlyRoles' => $onlyRoles]);
 
@@ -118,7 +130,9 @@ class RolesServiceImpl implements RolesService
             }
 
             $query = $this->rolesModel->newQuery();
-
+            if (!$showDefaultRole) {
+                $query->whereNotIn('id', $this->defaultRoleIds());
+            }
             if (!$onlyRoles) {
                 $query->with(['permissions','rolesPermissions']);
             }
@@ -143,7 +157,7 @@ class RolesServiceImpl implements RolesService
         }
     }
 
-    public function search(?SearchPaginationRequest $data, bool $onlyRoles = false): LengthAwarePaginator|Collection
+    public function search(?SearchPaginationRequest $data, bool $onlyRoles = false, bool $showDefaultRole = true): LengthAwarePaginator|Collection
     {
         $this->logger->info('Searching Roles', ['onlyRoles' => $onlyRoles]);
 
@@ -168,7 +182,9 @@ class RolesServiceImpl implements RolesService
             }
 
             $query = $this->rolesModel->newQuery();
-
+            if (!$showDefaultRole) {
+                $query->whereNotIn('id', $this->defaultRoleIds());
+            }
             if (!$onlyRoles) {
                 $query->with(['permissions', 'rolesPermissions']);
             }
