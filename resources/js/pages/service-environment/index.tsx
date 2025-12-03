@@ -151,6 +151,7 @@ export default function ServiceEnvironmentPage({
     const columns: ColumnDefinition<ServiceEnvironment>[] = useMemo(
     () => [
       { header: 'No', align: 'left', render: (item, index) => numberItem(index)},
+      { header: 'Namespace', align: 'left', render: (item) => item.service?.namespace?.name ?? '–' },
       { header: 'Service', align: 'left', render: (item) => item.service?.name ?? '–' },
       { header: 'Environment', align: 'left', render: (item) => item.environment?.name ?? '–' },
       { header: 'Created At', align: 'left', render: (item) => formatDateTime(item.created_at) },
