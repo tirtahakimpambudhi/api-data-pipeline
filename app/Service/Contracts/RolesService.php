@@ -11,11 +11,11 @@ use Illuminate\Support\Collection;
 
 interface RolesService
 {
-    public function getAll(PaginationRequest | null $data, bool $onlyRoles = false): LengthAwarePaginator | Collection;
+    public function getAll(PaginationRequest | null $data, bool $onlyRoles = false,  bool $showDefaultRole = true): LengthAwarePaginator | Collection;
 
     public function getById(int $id): Collection;
 
-    public function search(SearchPaginationRequest | null $data, bool $onlyRoles = false): LengthAwarePaginator | Collection;
+    public function search(SearchPaginationRequest | null $data, bool $onlyRoles = false,  bool $showDefaultRole = true): LengthAwarePaginator | Collection;
 
     public function create(CreateRolesRequest $data): Collection;
     public function update(int $id, UpdateRolesRequest $data): Collection;

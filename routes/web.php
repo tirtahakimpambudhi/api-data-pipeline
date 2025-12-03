@@ -18,11 +18,11 @@ Route::get('/', function () {
 });
 
 Route::middleware(['guest'])->group(function () {
-    Route::get('admin/register', [RegisteredAdminController::class, 'create'])
-        ->name('admin.register.form');
-
-    Route::post('admin/register', [RegisteredAdminController::class, 'store'])
-        ->name('admin.register.store');
+//    Route::get('admin/register', [RegisteredAdminController::class, 'create'])
+//        ->name('admin.register.form');
+//
+//    Route::post('admin/register', [RegisteredAdminController::class, 'store'])
+//        ->name('admin.register.store');
 });
 
 Route::middleware('signed')->group(function () {

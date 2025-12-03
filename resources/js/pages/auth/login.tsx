@@ -2,11 +2,10 @@ import AuthenticatedSessionController from '@/actions/App/Http/Controllers/Auth/
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { register } from '@/routes';
 import { request } from '@/routes/password';
 import { Form, Head, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
@@ -146,15 +145,6 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             }}
                         </Form>
                     </CardContent>
-
-                    <CardFooter className="flex justify-center text-sm">
-                        <p className="text-muted-foreground">
-                            Don&apos;t have an account?{' '}
-                            <TextLink href={register()} className="font-semibold">
-                                Sign up
-                            </TextLink>
-                        </p>
-                    </CardFooter>
                 </Card>
             </Card>
         </>

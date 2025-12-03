@@ -32,7 +32,7 @@ class RoleController extends Controller
     public function index(PaginationRequest $request)
     {
         try {
-            $roles = $this->rolesService->getAll($request);
+            $roles = $this->rolesService->getAll($request, false, false);
             return Inertia::render('roles/index', [
                 'roles' => $roles,
                 'filters' => $request->all(['page', 'size']),
@@ -50,7 +50,7 @@ class RoleController extends Controller
     public function search(SearchPaginationRequest $request)
     {
         try {
-            $roles = $this->rolesService->search($request);
+            $roles = $this->rolesService->search($request, false, false);
             return Inertia::render('roles/index', [
                 'roles' => $roles,
                 'filters' => $request->all(['page', 'size', 'search']),

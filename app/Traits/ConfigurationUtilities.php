@@ -12,6 +12,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\HttpFoundation\Request as RequestAlias;
 
@@ -197,6 +198,34 @@ trait ConfigurationUtilities
     // Unified HTTP helpers (no auto-throw; normalize outcomes)
     // ------------------------------------------------------------------------------------
 
+    private function makeDestinationPayloadCacheKey(Destination $dst, array $payload): string
+    {
+        $headers = $payload['headers'] ?? [];
+        $body    = $payload['body'] ?? [];
+
+        $fingerprint = hash('sha256', json_encode([
+            'method'  => $dst->method(),
+            'url'     => $dst->url(),
+            'headers' => $headers,
+            'body'    => $body,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+        return 'config:dst:' . $fingerprint;
+    }
+
+
+    private function getCachedOutcome(string $key): ?array
+    {
+        $value = Cache::get($key);
+        return is_array($value) ? $value : null;
+    }
+
+    private function putCachedOutcome(string $key, array $outcome): void
+    {
+        Cache::forever($key, $outcome);
+    }
+
+
     /**
      * Response|RequestException|Throwable -> normalized array outcome.
      */
@@ -254,7 +283,7 @@ trait ConfigurationUtilities
         mixed $body
     ): array {
         try {
-            $resp = $this->executeHttpMethod($req, $method, $url, $body); // jangan ->throw()
+            $resp = $this->executeHttpMethod($req, $method, $url, $body);
             return $this->normalizeHttpOutcome($resp);
         } catch (RequestException $e) {
             return $this->normalizeHttpOutcome($e);
@@ -327,6 +356,14 @@ trait ConfigurationUtilities
             $index = $i + 1;
             $this->line("🔄 [{$index}/{$total}] Preparing request", 'v');
 
+            // --- CACHE CHECK ---
+            $cacheKey = $this->makeDestinationPayloadCacheKey($dst, $p);
+            if ($cached = $this->getCachedOutcome($cacheKey)) {
+                $this->info("♻️ [{$index}/{$total}] Using cached outcome (HTTP {$cached['status']})");
+                $responses[] = $cached;
+                continue;
+            }
+
             $headers = $p['headers'] ?? [];
             $body    = $this->prepareBodyData($p['body'] ?? []);
 
@@ -345,9 +382,10 @@ trait ConfigurationUtilities
                 $this->error("❌ [{$index}/{$total}] HTTP {$out['status']} - " . substr((string)($out['error'] ?? 'unknown error'), 0, 200));
             }
 
+            $this->putCachedOutcome($cacheKey, $out);
+
             $responses[] = $out;
 
-            // rate limit antar request
             if ($i < $total - 1) {
                 $sleepSeconds = max(0, (int) ceil($dst->rangePerRequest() / 1000)); // ms -> s
                 if ($sleepSeconds > 0) {
@@ -376,59 +414,74 @@ trait ConfigurationUtilities
             $batchNum = $batchIndex + 1;
             $this->line("🔄 Processing batch {$batchNum}/{$totalBatches} (" . count($batch) . " requests)", 'v');
 
-            try {
-                $responses = Http::pool(function (Pool $pool) use ($batch, $dst) {
-                    $reqs = [];
-                    foreach ($batch as $p) {
-                        $headers = $p['headers'] ?? [];
-                        $body    = $this->prepareBodyData($p['body'] ?? []);
-                        $contentType = $headers['Content-Type'] ?? null;
-
-                        // Pool per-request config
-                        $r = $pool
-                            ->withHeaders($headers)
-                            ->timeout($dst->timeout())
-                            ->retry($dst->retryCount(), $dst->rangePerRequest());
-
-                        // Apply content-type per-request
-                        $r = $this->applyContentType($r, $contentType);
-
-                        // build request per method (tanpa ->throw())
-                        $reqs[] = match ($dst->method()) {
-                            RequestAlias::METHOD_GET    => $r->get($dst->url()),
-                            RequestAlias::METHOD_POST   => $r->post($dst->url(), $body),
-                            RequestAlias::METHOD_PUT    => $r->put($dst->url(), $body),
-                            RequestAlias::METHOD_PATCH  => $r->patch($dst->url(), $body),
-                            RequestAlias::METHOD_DELETE => $r->delete($dst->url(), $body),
-                            default => throw new \InvalidArgumentException("Unsupported HTTP method: {$dst->method()}"),
-                        };
-                    }
-                    return $reqs;
-                });
-
-                // Normalize semua item hasil pool
-                foreach ($responses as $r) {
-                    $allOutcomes[] = $this->normalizeHttpOutcome($r);
+            $batchOutcomes = [];
+            $pendingDefs = [];
+            // CACHE CHECK
+            // if cached not append item to pendingDefs
+            foreach ($batch as $p) {
+                $cacheKey = $this->makeDestinationPayloadCacheKey($dst, $p);
+                if ($cached = $this->getCachedOutcome($cacheKey)) {
+                    $this->info("♻️ [batch {$batchNum}] Using cached outcome (HTTP {$cached['status']})", 'v');
+                    $batchOutcomes[] = $cached;
+                } else {
+                    $pendingDefs[] = [
+                        'payload'  => $p,
+                        'cacheKey' => $cacheKey,
+                    ];
                 }
-            } catch (RequestException $e) {
-                // Jika pool melempar karena auto-throw global → normalisasi
-                $allOutcomes[] = $this->normalizeHttpOutcome($e);
-            } catch (\Throwable $e) {
-                $allOutcomes[] = $this->normalizeHttpOutcome($e);
             }
 
-            // ringkasan batch
+            if (!empty($pendingDefs)) {
+                try {
+                    $responses = Http::pool(function (Pool $pool) use ($pendingDefs, $dst) {
+                        $reqs = [];
+                        foreach ($pendingDefs as $def) {
+                            $p = $def['payload'];
+                            $headers = $p['headers'] ?? [];
+                            $body    = $this->prepareBodyData($p['body'] ?? []);
+                            $contentType = $headers['Content-Type'] ?? null;
+
+                            $r = $pool
+                                ->withHeaders($headers)
+                                ->timeout($dst->timeout())
+                                ->retry($dst->retryCount(), $dst->rangePerRequest());
+
+                            $r = $this->applyContentType($r, $contentType);
+
+                            $reqs[] = match ($dst->method()) {
+                                RequestAlias::METHOD_GET    => $r->send('GET', $dst->url(), [
+                                    'body' => is_string($body) ? $body : json_encode($body),
+                                ]),
+                                RequestAlias::METHOD_POST   => $r->post($dst->url(), $body),
+                                RequestAlias::METHOD_PUT    => $r->put($dst->url(), $body),
+                                RequestAlias::METHOD_PATCH  => $r->patch($dst->url(), $body),
+                                RequestAlias::METHOD_DELETE => $r->delete($dst->url(), $body),
+                                default => throw new \InvalidArgumentException("Unsupported HTTP method: {$dst->method()}"),
+                            };
+                        }
+                        return $reqs;
+                    });
+
+                    foreach ($responses as $i => $r) {
+                        $normalized = $this->normalizeHttpOutcome($r);
+                        $this->putCachedOutcome($pendingDefs[$i]['cacheKey'], $normalized);
+                        $batchOutcomes[] = $normalized;
+                    }
+                } catch (RequestException $e) {
+                    $normalized = $this->normalizeHttpOutcome($e);
+                    $batchOutcomes[] = $normalized;
+                } catch (\Throwable $e) {
+                    $normalized = $this->normalizeHttpOutcome($e);
+                    $batchOutcomes[] = $normalized;
+                }
+            }
+
+            // 3) ringkasan + client error check
             $batchSuccess = 0;
             $batchFailed  = 0;
             $hasClientErr = false;
-            $lastIndex = count($allOutcomes) - 1;
 
-            // hitung hanya outcome untuk batch ini
-            $startIndex = $lastIndex - count($batch) + 1;
-            $startIndex = max(0, $startIndex);
-
-            for ($i = $startIndex; $i <= $lastIndex; $i++) {
-                $o = $allOutcomes[$i];
+            foreach ($batchOutcomes as $o) {
                 if ($o['ok']) {
                     $batchSuccess++;
                 } else {
@@ -446,7 +499,8 @@ trait ConfigurationUtilities
                 throw new \RuntimeException("Batch {$batchNum} contains client errors (4xx). Stopping execution.");
             }
 
-            // jeda antar batch (opsional kecil agar tidak menekan server)
+            $allOutcomes = array_merge($allOutcomes, $batchOutcomes);
+
             if ($batchIndex < $totalBatches - 1) {
                 $sleepSeconds = 3;
                 $this->line("⏳ Waiting {$sleepSeconds} seconds before next batch...", 'v');
@@ -466,43 +520,75 @@ trait ConfigurationUtilities
         $this->info("📤 Sending {$total} requests concurrently (pool mode)...");
         $this->warn("⚠️  Note: All requests will be sent simultaneously!");
 
-        $outcomes = [];
+        $outcomesByIndex = [];
+        $pendingDefs     = [];
 
-        try {
-            $responses = Http::pool(function (Pool $pool) use ($payloads, $dst) {
-                $reqs = [];
-                foreach ($payloads as $p) {
-                    $headers = $p['headers'] ?? [];
-                    $body    = $this->prepareBodyData($p['body'] ?? []);
-                    $contentType = $headers['Content-Type'] ?? null;
-
-                    $r = $pool
-                        ->withHeaders($headers)
-                        ->timeout($dst->timeout())
-                        ->retry($dst->retryCount(), $dst->rangePerRequest());
-
-                    $r = $this->applyContentType($r, $contentType);
-
-                    $reqs[] = match ($dst->method()) {
-                        RequestAlias::METHOD_GET    => $r->get($dst->url()),
-                        RequestAlias::METHOD_POST   => $r->post($dst->url(), $body),
-                        RequestAlias::METHOD_PUT    => $r->put($dst->url(), $body),
-                        RequestAlias::METHOD_PATCH  => $r->patch($dst->url(), $body),
-                        RequestAlias::METHOD_DELETE => $r->delete($dst->url(), $body),
-                        default => throw new \InvalidArgumentException("Unsupported HTTP method: {$dst->method()}"),
-                    };
-                }
-                return $reqs;
-            });
-
-            foreach ($responses as $r) {
-                $outcomes[] = $this->normalizeHttpOutcome($r);
+        foreach ($payloads as $i => $p) {
+            $cacheKey = $this->makeDestinationPayloadCacheKey($dst, $p);
+            if ($cached = $this->getCachedOutcome($cacheKey)) {
+                $this->info("♻️ [{$i}] Using cached outcome (HTTP {$cached['status']})", 'v');
+                $outcomesByIndex[$i] = $cached;
+            } else {
+                $pendingDefs[] = [
+                    'index'    => $i,
+                    'payload'  => $p,
+                    'cacheKey' => $cacheKey,
+                ];
             }
-        } catch (RequestException $e) {
-            $outcomes[] = $this->normalizeHttpOutcome($e);
-        } catch (\Throwable $e) {
-            $outcomes[] = $this->normalizeHttpOutcome($e);
         }
+
+        if (!empty($pendingDefs)) {
+            try {
+                $responses = Http::pool(function (Pool $pool) use ($pendingDefs, $dst) {
+                    $reqs = [];
+                    foreach ($pendingDefs as $def) {
+                        $p = $def['payload'];
+                        $headers = $p['headers'] ?? [];
+                        $body    = $this->prepareBodyData($p['body'] ?? []);
+                        $contentType = $headers['Content-Type'] ?? null;
+
+                        $r = $pool
+                            ->withHeaders($headers)
+                            ->timeout($dst->timeout())
+                            ->retry($dst->retryCount(), $dst->rangePerRequest());
+
+                        $r = $this->applyContentType($r, $contentType);
+
+                        $reqs[] = match ($dst->method()) {
+                            RequestAlias::METHOD_GET    => $r->send('GET', $dst->url(), [
+                                'body' => is_string($body) ? $body : json_encode($body),
+                            ]),
+                            RequestAlias::METHOD_POST   => $r->post($dst->url(), $body),
+                            RequestAlias::METHOD_PUT    => $r->put($dst->url(), $body),
+                            RequestAlias::METHOD_PATCH  => $r->patch($dst->url(), $body),
+                            RequestAlias::METHOD_DELETE => $r->delete($dst->url(), $body),
+                            default => throw new \InvalidArgumentException("Unsupported HTTP method: {$dst->method()}"),
+                        };
+                    }
+                    return $reqs;
+                });
+
+                foreach ($responses as $i => $r) {
+                    $normalized = $this->normalizeHttpOutcome($r);
+                    $def        = $pendingDefs[$i];
+
+                    // simpan cache
+                    $this->putCachedOutcome($def['cacheKey'], $normalized);
+
+                    $outcomesByIndex[$def['index']] = $normalized;
+                }
+            } catch (RequestException $e) {
+                $normalized = $this->normalizeHttpOutcome($e);
+                // di sini kita tidak tahu index asal, tapi ini kasus error global
+                $outcomesByIndex[] = $normalized;
+            } catch (\Throwable $e) {
+                $normalized = $this->normalizeHttpOutcome($e);
+                $outcomesByIndex[] = $normalized;
+            }
+        }
+
+        ksort($outcomesByIndex);
+        $outcomes = array_values($outcomesByIndex);
 
         // stop lebih dini jika ada 4xx (konsisten dengan batch)
         foreach ($outcomes as $i => $o) {
