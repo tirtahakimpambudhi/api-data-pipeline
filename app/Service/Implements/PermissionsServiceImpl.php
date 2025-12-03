@@ -12,16 +12,20 @@ use App\Exceptions\UnauthorizedServiceException;
 use App\Http\Requests\General\PaginationRequest;
 use App\Http\Requests\General\SearchPaginationRequest;
 use App\Models\Permissions;
+use App\Service\CommonService;
 use App\Service\Contracts\PermissionsService;
 use App\Traits\Helpers;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
 use Illuminate\Log\Logger;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
-class PermissionsServiceImpl implements PermissionsService
+class PermissionsServiceImpl extends CommonService implements PermissionsService
 {
     use Helpers;
 
@@ -31,189 +35,72 @@ class PermissionsServiceImpl implements PermissionsService
      */
     public function __construct(
         AuthFactory $authFactory,
-        protected Permissions $model,
-        protected Logger $logger
+        Permissions $model,
+        Logger $logger
     )
     {
-        $this->guard = $authFactory->guard('web');
+        parent::__construct(
+            $authFactory,
+            $model,
+            ResourcesTypes::PERMISSIONS,
+            $logger,
+            ['roles','rolesPermissions']
+        );
         $this->logger->info("PermissionsServiceImpl initialized");
     }
 
-    protected function checkPermission(string $action): void
-    {
-        $this->logger->debug('Checking permission', [
-            'action'   => $action,
-            'resource' => ResourcesTypes::PERMISSIONS,
-        ]);
-
-        $user = $this->guard->user();
-
-        if (!$user) {
-            $this->logger->warning('Permission check failed: user not authenticated');
-            throw new UnauthorizedServiceException("User not authenticated, must be logged in.");
-        }
-
-        if (!$user->hasPermission(ResourcesTypes::PERMISSIONS, $action)) {
-            $this->logger->warning('Permission denied', [
-                'user_id'  => $user->id ?? null,
-                'action'   => $action,
-                'resource' => ResourcesTypes::PERMISSIONS,
-            ]);
-
-            $actionLower = strtolower($action);
-
-            throw new PermissionDeniedServiceException(
-                "User does not have permission to {$actionLower} permissions."
-            );
-        }
-
-        $this->logger->debug('Permission granted', [
-            'user_id'  => $user->id ?? null,
-            'action'   => $action,
-            'resource' => ResourcesTypes::PERMISSIONS,
-        ]);
-    }
-
-
+    /**
+     * @throws AppServiceException
+     * @throws InternalServiceException
+     */
     public function getAll(?PaginationRequest $data, bool $onlyPermissions = false): LengthAwarePaginator|Collection
     {
-        $this->logger->info('Retrieving all Permissions', ['$onlyPermissions' => $onlyPermissions]);
-
-        try {
-            $this->checkPermission(ActionsTypes::READ);
-
-            $page = 0;
-            $size = 0;
-            if ($data !== null) {
-                $value = $data->validated();
-                $page  = (int)($value['page'] ?? 0);
-                $size  = (int)($value['size'] ?? 0);
-
-                $this->logger->debug('Pagination parameters detected', [
-                    'page' => $page,
-                    'size' => $size,
-                ]);
-            }
-
-            $query = $this->model->newQuery();
-
-            if (!$onlyPermissions) {
-                $query->with(['roles','rolesPermissions']);
-            }
-
-            $result = ($page > 0 && $size > 0)
-                ? $this->applyPagination($query, $page, $size)
-                : $query->get();
-
-            $this->logger->info('Successfully retrieved Permissions', [
-                'count' => $result instanceof Collection ? $result->count() : $result->total(),
-            ]);
-
-            return $result;
-        } catch (AppServiceException $e) {
-            throw $e;
-        } catch (\Throwable $e) {
-            $this->logger->error('Error retrieving Permissions', [
-                'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-            ]);
-            throw new InternalServiceException('Failed to load permissions. Please try again later.');
-        }
+        return parent::getAll($data, $onlyPermissions);
     }
 
-    public function getById(int $id): Collection
-    {
-        $this->logger->info('Retrieving Permissions by ID', ['id' => $id]);
-
-        try {
-            $this->checkPermission(ActionsTypes::READ);
-
-            $row = $this->model->newQuery()
-                ->with(['roles', 'rolesPermissions'])
-                ->find($id);
-
-            if (!$row) {
-                $this->logger->warning('Permissions not found', ['id' => $id]);
-                throw new NotFoundServiceException("Permissions not found with id {$id}.");
-            }
-
-            $this->logger->info('Permissions retrieved successfully', [
-                'id'   => $row->id,
-                'resource_type' => $row->resource_type,
-                'action' => $row->action,
-            ]);
-
-            return collect($row);
-        } catch (AppServiceException $e) {
-            throw $e;
-        } catch (\Throwable $e) {
-            $this->logger->error('Error retrieving Permissions by ID', [
-                'id'      => $id,
-                'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-            ]);
-            throw new InternalServiceException('Failed to load permissions. Please try again later.');
-        }
-    }
-
+    /**
+     * @throws AppServiceException
+     * @throws InternalServiceException
+     */
     public function search(?SearchPaginationRequest $data, bool $onlyPermissions = false): LengthAwarePaginator|Collection
     {
-        $this->logger->info('Searching Roles', ['$onlyPermissions' => $onlyPermissions]);
+        return parent::search($data, $onlyPermissions);
+    }
 
-        try {
-            $this->checkPermission(ActionsTypes::READ);
+    protected function createModel(array $value): Model
+    {
+        return $this->model;
+    }
 
-            $term = '';
-            $page = 0;
-            $size = 0;
+    protected function handleErrorCreate(QueryException $exception, array $value): AppServiceException
+    {
+        return new InternalServiceException("unused action");
+    }
 
-            if ($data !== null) {
-                $value = $data->validated();
-                $page  = (int)($value['page'] ?? 0);
-                $size  = (int)($value['size'] ?? 0);
-                $term  = trim((string)($value['search'] ?? ''));
+    protected function handleErrorUpdate(QueryException $exception, array $value): AppServiceException
+    {
+        return new InternalServiceException("unused action");
+    }
 
-                $this->logger->debug('Search parameters', [
-                    'term' => $term,
-                    'page' => $page,
-                    'size' => $size,
-                ]);
-            }
+    protected function updateModel(array $value, Model $model): void
+    {
+        // TODO: Implement updateModel() method.
+    }
 
-            $query = $this->model->newQuery();
+    protected function searchModel(Builder $query, string $value): void
+    {
+        if ($value !== '') {
+            $this->logger->debug('Applying search filters', ['term' => $value]);
 
-            if (!$onlyPermissions) {
-                $query->with(['roles', 'rolesPermissions']);
-            }
-
-            if ($term !== '') {
-                $this->logger->debug('Applying search filters', ['term' => $term]);
-
-                $query->where(function ($q) use ($term) {
-                    $q->whereLike('resource_type', "%{$term}%")
-                        ->orWhereLike('action', "%{$term}%");
-                });
-            }
-
-            $result = ($page > 0 && $size > 0)
-                ? $this->applyPagination($query, $page, $size)
-                : $query->get();
-
-            $this->logger->info('Search completed', [
-                'term'  => $term,
-                'count' => $result instanceof Collection ? $result->count() : $result->total(),
-            ]);
-
-            return $result;
-        } catch (AppServiceException $e) {
-            throw $e;
-        } catch (\Throwable $e) {
-            $this->logger->error('Error during Permissions search', [
-                'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-            ]);
-
-            throw new InternalServiceException('Failed to search permissions. Please try again later.');
+            $query->where(function ($q) use ($value) {
+                $q->whereLike('resource_type', "%{$value}%")
+                    ->orWhereLike('action', "%{$value}%");
+            });
         }
+    }
+
+    protected function getRelationshipsByID(): array
+    {
+        return ['roles', 'rolesPermissions'];
     }
 }
