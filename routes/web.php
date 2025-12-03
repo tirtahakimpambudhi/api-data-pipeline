@@ -6,8 +6,10 @@ use App\Http\Controllers\ConfigurationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnvironmentController;
 use App\Http\Controllers\NamespaceController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ServiceEnvironmentController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -61,6 +63,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('configurations/search', [ConfigurationController::class, 'search'])->name('configurations.search');
     Route::resource('configurations', ConfigurationController::class);
 
+    // Roles
+    Route::get('roles/search', [RoleController::class, 'search'])->name('roles.search');
+    Route::resource('roles', RoleController::class);
+
+    // Users
+    Route::get('users/search', [UserController::class, 'search'])->name('users.search');
+    Route::resource('users', UserController::class);
 
     // Setting
     Route::get('settings', function () {
