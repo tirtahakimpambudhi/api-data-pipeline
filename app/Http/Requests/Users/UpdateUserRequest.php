@@ -34,18 +34,18 @@ class UpdateUserRequest extends FormRequest
             ? $routeUser->id
             : $routeUser;
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['sometimes', 'string', 'max:255'],
 
             'email' => [
-                'required',
+                'sometimes',
                 'string',
                 'lowercase',
                 'email',
                 'max:255',
                 Rule::unique(Users::class)->ignore($userId),
             ],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role_id' => ['required', 'integer', 'exists:roles,id'],
+            'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'role_id' => ['sometimes', 'integer', 'exists:roles,id'],
         ];
     }
 

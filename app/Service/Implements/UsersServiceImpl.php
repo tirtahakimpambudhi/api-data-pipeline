@@ -387,9 +387,11 @@ class UsersServiceImpl implements UsersService
             }
 
             // Hash password if provided
-            if (isset($validated['password'])) {
+            if (isset($validated['password']) || !is_null($validated['password'])) {
                 $validated['password'] = bcrypt($validated['password']);
                 $this->logger->debug('Password will be updated', ['id' => $id]);
+            } else {
+                unset($validated['password']);
             }
 
             $user->update($validated);
