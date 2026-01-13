@@ -16,9 +16,6 @@
         <include>
             <directory>app</directory>
         </include>
-        <exclude>
-            <directory>./tests/Feature/Models</directory>
-        </exclude>
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>

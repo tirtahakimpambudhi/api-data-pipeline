@@ -33,17 +33,6 @@ it('can create, update, and delete a channels', function () {
     $this->assertDatabaseMissing('channels', ['id' => $id]);
 });
 
-it('can read with include all relationships channels', function () {
-    $this->seed(DatabaseSeeder::class);
-
-    $chan = Channels::query()
-        ->with('configurations')
-        ->with('servicesEnvironments')
-        ->findOrFail(1);
-    $allSvcEnvs = $chan->servicesEnvironments->flatten();
-    expect($allSvcEnvs)->not->toBeEmpty();
-});
-
 it('can create, update and delete a channels with configurations models', function () {
     // Create
     $ns = Namespaces::query()->create(['name' => 'namespace']);

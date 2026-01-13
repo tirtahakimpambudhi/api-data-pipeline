@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Resources\Configurations\Destination;
+use App\Http\Resources\Configurations\Source;
 use App\Models\Channels;
 use App\Models\Configurations;
 use App\Models\Environments;
