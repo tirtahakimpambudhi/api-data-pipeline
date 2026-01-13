@@ -122,55 +122,7 @@ class ConfigurationsServiceImpl extends CommonService implements ConfigurationsS
 
     public function search(SearchPaginationRequest | null $data, bool $onlyConf = false): LengthAwarePaginator|Collection
     {
-        $this->logger->info("Searching configurations", ['onlyConf' => $onlyConf]);
-        try {
-            $this->checkPermission(ActionsTypes::READ);
-            $term = '';
-            $page = 0;
-            $size = 0;
-
-            if ($data !== null) {
-                $value = $data->validated();
-                $term  = trim((string)($value['search'] ?? ''));
-                $page  = (int)($value['page'] ?? 0);
-                $size  = (int)($value['size'] ?? 0);
-                $this->logger->debug("Search parameters", ['term' => $term, 'page' => $page, 'size' => $size]);
-            }
-
-            $query = $this->model->newQuery();
-            if (!$onlyConf) {
-                $query->with(['serviceEnvironment.service.namespace','serviceEnvironment.environment','channel']);
-            };
-
-            if ($term !== '') {
-                $query->where(function($q) use ($term) {
-                    $q->whereHas('channel', fn($cq) => $cq->whereLike('name', "%{$term}%"))
-                        ->orWhereHas('serviceEnvironment.service', fn($sq) => $sq->whereLike('name', "%{$term}%"))
-                        ->orWhereHas('serviceEnvironment.environment', fn($eq) => $eq->whereLike('name', "%{$term}%"))
-                        ->orWhereHas('serviceEnvironment.service.namespace', fn($nq) => $nq->whereLike('name', "%{$term}%"));
-                });
-            }
-
-            $result = ($page > 0 && $size > 0)
-                ? $this->applyPagination($query, $page, $size)
-                : $query->get();
-
-            $this->logger->info("Search completed", [
-                'term' => $term,
-                'count' => $result instanceof Collection ? $result->count() : $result->total()
-            ]);
-
-            return $result;
-        } catch (AppServiceException $e) {
-            $this->logger->error("AppServiceException: {$e->getMessage()}");
-            throw $e;
-        } catch (\Throwable $e) {
-            $this->logger->error("Error during configuration search", [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            throw new InternalServiceException('Failed to search configurations. Please try again later.');
-        }
+        return parent::search($data, $onlyConf);
     }
 
     /**
