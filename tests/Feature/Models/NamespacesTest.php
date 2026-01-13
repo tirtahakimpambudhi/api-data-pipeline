@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Resources\Configurations\Destination;
+use App\Http\Resources\Configurations\Source;
 use App\Models\Channels;
 use App\Models\Configurations;
 use App\Models\Environments;
@@ -39,7 +41,18 @@ it('can read with include all relationships namespace', function () {
     $se3 = ServicesEnvironments::create(['service_id' => $svc2->id, 'environment_id' => $env1->id]);
 
     $chan = Channels::create(['name' => 'slack']);
-    Configurations::create(['service_environment_id' => $se1->id, 'channel_id' => $chan->id]);
+    Configurations::create([
+        'service_environment_id' => $se1->id,
+        'channel_id' => $chan->id,
+        'source' => Source::fromArray([
+            'url' => 'https://google.com'
+        ]),
+        'destination' => Destination::fromArray([
+            'url' => 'https://google.com',
+            'body_template' => json_encode([])
+        ]),
+        'cron_expression' => '* * * * *'
+    ]);
 
     $ns->load(['services.environments','services.configurations','servicesEnvironments']);
 

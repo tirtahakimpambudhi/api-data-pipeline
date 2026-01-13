@@ -50,7 +50,18 @@ it('can read with include all relationships service', function () {
     $se2 = ServicesEnvironments::create(['service_id' => $svc->id, 'environment_id' => $env2->id]);
 
     $chan = Channels::create(['name' => 'slack']);
-    Configurations::create(['service_environment_id' => $se1->id, 'channel_id' => $chan->id]);
+    Configurations::create([
+        'service_environment_id' => $se1->id,
+        'channel_id' => $chan->id,
+        'source' => Source::fromArray([
+            'url' => 'https://google.com'
+        ]),
+        'destination' => Destination::fromArray([
+            'url' => 'https://google.com',
+            'body_template' => json_encode([])
+        ]),
+        'cron_expression' => '* * * * *'
+        ]);
 
     $svc->load(['namespace','servicesEnvironments','environments','configurations']);
 

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Resources\Configurations\Destination;
+use App\Http\Resources\Configurations\Source;
 use App\Models\Channels;
 use App\Models\Configurations;
 use App\Models\Environments;
@@ -37,7 +39,15 @@ it('can create, update, and delete a configurations', function () {
 
     $conf = Configurations::query()->create([
        'service_environment_id' => $svcEnv->id,
-        'channel_id' => $chan->id
+        'channel_id' => $chan->id,
+        'source' => Source::fromArray([
+        'url' => 'https://google.com'
+    ]),
+        'destination' => Destination::fromArray([
+        'url' => 'https://google.com',
+        'body_template' => json_encode([])
+    ]),
+        'cron_expression' => '* * * * *'
     ]);
 
     $conf->load(['serviceEnvironment', 'channel']);
@@ -83,6 +93,14 @@ it('can read with include all relationships configurations', function () {
     $conf = Configurations::create([
         'service_environment_id' => $svcEnv->id,
         'channel_id' => $chan->id,
+        'source' => Source::fromArray([
+            'url' => 'https://google.com'
+        ]),
+        'destination' => Destination::fromArray([
+            'url' => 'https://google.com',
+            'body_template' => json_encode([])
+        ]),
+        'cron_expression' => '* * * * *'
     ])->load(['channel','serviceEnvironment']);
 
     expect($conf->channel->name)->toBe('slack');
@@ -111,7 +129,15 @@ it('can create, update and delete a configurations with service environments mod
     ]);
     $conf = Configurations::query()->create([
         'channel_id' => $chan->id,
-        'service_environment_id' => $svcEnv->id
+        'service_environment_id' => $svcEnv->id,
+        'source' => Source::fromArray([
+            'url' => 'https://google.com'
+        ]),
+        'destination' => Destination::fromArray([
+            'url' => 'https://google.com',
+            'body_template' => json_encode([])
+        ]),
+        'cron_expression' => '* * * * *'
     ]);
     $conf->load(['channel', 'serviceEnvironment']);
 

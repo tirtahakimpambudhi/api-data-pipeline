@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Resources\Configurations\Destination;
+use App\Http\Resources\Configurations\Source;
 use App\Models\Channels;
 use App\Models\Configurations;
 use App\Models\Environments;
@@ -67,14 +69,36 @@ it('can read with include all relationships service environment', function () {
 
     $chan1 = Channels::create(['name' => 'slack']);
     $chan2 = Channels::create(['name' => 'discord']);
-    Configurations::create(['service_environment_id' => $se->id, 'channel_id' => $chan1->id]);
-    Configurations::create(['service_environment_id' => $se->id, 'channel_id' => $chan2->id]);
+    Configurations::create([
+        'service_environment_id' => $se->id,
+        'channel_id' => $chan1->id,
+        'source' => Source::fromArray([
+            'url' => 'https://google.com'
+        ]),
+        'destination' => Destination::fromArray([
+            'url' => 'https://google.com',
+            'body_template' => json_encode([])
+        ]),
+        'cron_expression' => '* * * * *'
+        ]);
+    Configurations::create([
+        'service_environment_id' => $se->id,
+        'channel_id' => $chan2->id,
+            'source' => Source::fromArray([
+        'url' => 'https://google.com'
+    ]),
+        'destination' => Destination::fromArray([
+        'url' => 'https://google.com',
+        'body_template' => json_encode([])
+    ]),
+        'cron_expression' => '* * * * *'
+    ]);
 
     $se->load(['service','environment','configurations','channels']);
 
     expect($se->service->name)->toBe('svc');
     expect($se->environment->name)->toBe('dev');
-    expect($se->channels)->toHaveCount(2);
+    expect($se->channels)->toHaveCount(1);
     expect($se->configurations)->toHaveCount(2);
 });
 
