@@ -1,0 +1,38 @@
+name: deployment.yml
+on:
+  push:
+    branches:
+      - master
+
+
+jobs:
+  cd:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}a
+          REPOSITORY: https://${{ github.actor }}:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          envs: REPOSITORY,GITHUB_REPOSITORY
+          port: ${{ secrets.PORT }}
+          script: |
+            set -e
+              REPOSITORY_NAME=$(basename "$GITHUB_REPOSITORY")
+              APP_DIR="$REPOSITORY_NAME"
+              if [ -d $APP_DIR ]; then
+                  cd $APP_DIR
+                  git pull --rebase -X ours
+                  sudo docker compose up --build -d
+              else
+                  git clone $REPOSITORY
+                  sudo docker compose up --build -d
+              fi
