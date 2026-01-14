@@ -2,3 +2,4 @@
 **.sh**
 **vendor**
 **node_modules**
+.git/*
