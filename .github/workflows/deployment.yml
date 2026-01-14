@@ -49,18 +49,18 @@ jobs:
                 git clone "$REPOSITORY" "$APP_DIR"
                 cd "$APP_DIR"
               fi
-
-              sudo envsubst '
-              $APP_ENV
-              $APP_NAME
-              $APP_DEBUG
-              $ADMIN_EMAIL
-              $ADMIN_USERNAME
-              $ADMIN_PASSWORD
-              $MAIL_USERNAME
-              $MAIL_PASSWORD
-              $MAIL_FROM_ADDRESS
-              $MAIL_FROM_NAME
-              ' < .env.example > .env
-              sudo docker compose up --build -d
+                sudo envsubst '
+                $APP_ENV
+                $APP_NAME
+                $APP_DEBUG
+                $ADMIN_EMAIL
+                $ADMIN_USERNAME
+                $ADMIN_PASSWORD
+                $MAIL_USERNAME
+                $MAIL_PASSWORD
+                $MAIL_FROM_ADDRESS
+                $MAIL_FROM_NAME
+                ' < .env.example > .env
+                sudo touch database/database.sqlite
+                sudo docker compose up --build -d
 
