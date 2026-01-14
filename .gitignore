@@ -32,3 +32,4 @@ yarn-error.log
 .git/*
 **vendor**
 **node_modules**
+.secrets
