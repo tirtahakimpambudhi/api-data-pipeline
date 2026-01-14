@@ -1,15 +1,11 @@
-name: tests
+name: Continuous Integration
 
 on:
   push:
     branches:
-      - develop
-      - main
-      - master
+      - development
   pull_request:
     branches:
-      - develop
-      - main
       - master
 
 permissions:
@@ -88,7 +84,15 @@ jobs:
             ghcr.io/${{ github.repository }}-nginx:latest
             ghcr.io/${{ github.repository }}-nginx:${{ github.sha }}
 
-      - name: Generate prod.docker-compose.yml from template
+      - name: Export image environment variables
         run: |
-          envsubst < docker-compose.tpl.yml > prod.docker-compose.yml
-          cat prod.docker-compose.yml
+          echo "APP_IMAGE=ghcr.io/${{ github.repository }}-php:${{ github.sha }}" >> $GITHUB_ENV
+          echo "WEB_SERVER_IMAGE=ghcr.io/${{ github.repository }}-nginx:${{ github.sha }}" >> $GITHUB_ENV
+
+      - name: Generate prod.docker-compose.yaml from template
+        run: |
+          envsubst '
+            $APP_IMAGE
+            $WEB_SERVER_IMAGE
+          ' < docker-compose.tpl.yaml > prod.docker-compose.yaml
+          cat prod.docker-compose.yaml

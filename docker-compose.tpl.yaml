@@ -1,0 +1,42 @@
+
+services:
+  app:
+    container_name: app-nginx-aino-svc-conf
+    networks:
+      - app-network
+    image: ${APP_IMAGE}
+#    command: ["sh", "-c", "php artisan migrate --force && exec /usr/local/bin/entrypoint.sh"]
+#    command: >
+#          sh -c "
+#            php artisan migrate:fresh --force &&
+#            php artisan db:seed --class=ProdSeeder --force &&
+#            exec /usr/local/bin/entrypoint.sh
+#          "
+    # override command in dockerfile where need migrate and seed
+    volumes:
+      - "./database/database.sqlite:/var/www/database/database.sqlite" ## Make sure the file database.sqlite exists
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'php-fpm' >/dev/null && pgrep -f 'artisan schedule:work' >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    env_file:
+      - .env
+
+
+
+  nginx:
+    container_name: nginx-aino-svc-conf
+    image: ${WEB_SERVER_IMAGE}
+    networks: [app-network]
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+
+
+networks:
+  app-network:
+    name: "app-network"
