@@ -29,6 +29,7 @@ jobs:
           MAIL_FROM_ADDRESS: ${{ secrets.MAIL_USERNAME }}
           MAIL_FROM_NAME: ${{ vars.APP_NAME }}
         with:
+          command_timeout: 30m
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
@@ -61,6 +62,8 @@ jobs:
                 $MAIL_FROM_ADDRESS
                 $MAIL_FROM_NAME
                 ' < .env.example > .env
+                sudo mkdir -p database
                 sudo touch database/database.sqlite
+                sudo chown -R $USER:$USER database
                 sudo docker compose up --build -d
 
