@@ -33,6 +33,7 @@ jobs:
                   git pull --rebase -X ours
                   sudo docker compose up --build -d
               else
+                  cd $APP_DIR
                   git clone $REPOSITORY
                   sudo docker compose up --build -d
               fi
