@@ -67,5 +67,5 @@ jobs:
                 sudo mkdir -p database
                 sudo touch database/database.sqlite
                 sudo chown -R $USER:$USER database
-                sudo docker compose -f prod.docker-compose.yml up --build -d
+                sudo docker compose -f prod.docker-compose.yml up -d
 
