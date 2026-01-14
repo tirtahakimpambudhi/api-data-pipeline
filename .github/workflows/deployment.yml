@@ -16,13 +16,23 @@ jobs:
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1
         env:
-          GITHUB_REPOSITORY: ${{ github.repository }}a
+          GITHUB_REPOSITORY: ${{ github.repository }}
           REPOSITORY: https://${{ github.actor }}:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
+          APP_ENV: ${{ vars.APP_ENV }}
+          APP_NAME: ${{ vars.APP_NAME }}
+          APP_DEBUG: ${{ vars.APP_DEBUG }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM_ADDRESS: ${{ secrets.MAIL_USERNAME }}
+          MAIL_FROM_NAME: ${{ vars.APP_NAME }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          envs: REPOSITORY,GITHUB_REPOSITORY
+          envs: REPOSITORY,GITHUB_REPOSITORY,APP_ENV,APP_NAME,APP_DEBUG,ADMIN_EMAIL,ADMIN_USERNAME,ADMIN_PASSWORD,MAIL_USERNAME,MAIL_PASSWORD,MAIL_FROM_ADDRESS,MAIL_FROM_NAME
           port: ${{ secrets.PORT }}
           script: |
               set -e
@@ -31,14 +41,26 @@ jobs:
               APP_DIR="$REPOSITORY_NAME"
 
               if [ -d "$APP_DIR/.git" ]; then
-              echo "Updating existing repository..."
-              cd "$APP_DIR"
-              git fetch origin
-              git reset --hard origin/master
+                echo "Updating existing repository..."
+                cd "$APP_DIR"
+                git pull --rebase -X ours origin master
               else
               echo "Cloning repository..."
-              git clone "$REPOSITORY" "$APP_DIR"
-              cd "$APP_DIR"
+                git clone "$REPOSITORY" "$APP_DIR"
+                cd "$APP_DIR"
               fi
 
+              sudo envsubst '
+              $APP_ENV
+              $APP_NAME
+              $APP_DEBUG
+              $ADMIN_EMAIL
+              $ADMIN_USERNAME
+              $ADMIN_PASSWORD
+              $MAIL_USERNAME
+              $MAIL_PASSWORD
+              $MAIL_FROM_ADDRESS
+              $MAIL_FROM_NAME
+              ' < .env.example > .env
               sudo docker compose up --build -d
+
