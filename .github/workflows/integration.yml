@@ -89,10 +89,10 @@ jobs:
           echo "APP_IMAGE=ghcr.io/${{ github.repository }}-php:${{ github.sha }}" >> $GITHUB_ENV
           echo "WEB_SERVER_IMAGE=ghcr.io/${{ github.repository }}-nginx:${{ github.sha }}" >> $GITHUB_ENV
 
-      - name: Generate prod.docker-compose.yml from template
+      - name: Generate prod.docker-compose.yaml from template
         run: |
           envsubst '
             $APP_IMAGE
             $WEB_SERVER_IMAGE
-          ' < docker-compose.tpl.yml > prod.docker-compose.yml
-          cat prod.docker-compose.yml
+          ' < docker-compose.tpl.yaml > prod.docker-compose.yaml
+          cat prod.docker-compose.yaml
