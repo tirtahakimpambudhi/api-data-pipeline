@@ -25,15 +25,20 @@ jobs:
           envs: REPOSITORY,GITHUB_REPOSITORY
           port: ${{ secrets.PORT }}
           script: |
-            set -e
+              set -e
+
               REPOSITORY_NAME=$(basename "$GITHUB_REPOSITORY")
               APP_DIR="$REPOSITORY_NAME"
-              if [ -d $APP_DIR ]; then
-                  cd $APP_DIR
-                  git pull --rebase -X ours
-                  sudo docker compose up --build -d
+
+              if [ -d "$APP_DIR/.git" ]; then
+              echo "Updating existing repository..."
+              cd "$APP_DIR"
+              git fetch origin
+              git reset --hard origin/master
               else
-                  cd $APP_DIR
-                  git clone $REPOSITORY
-                  sudo docker compose up --build -d
+              echo "Cloning repository..."
+              git clone "$REPOSITORY" "$APP_DIR"
+              cd "$APP_DIR"
               fi
+
+              sudo docker compose up --build -d
