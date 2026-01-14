@@ -34,12 +34,14 @@ jobs:
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           MAIL_FROM_ADDRESS: ${{ secrets.MAIL_USERNAME }}
           MAIL_FROM_NAME: ${{ vars.APP_NAME }}
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_PAT: ${{ secrets.GH_PAT }}
         with:
           command_timeout: 1h
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          envs: REPOSITORY,GITHUB_REPOSITORY,APP_ENV,APP_NAME,APP_DEBUG,ADMIN_EMAIL,ADMIN_USERNAME,ADMIN_PASSWORD,MAIL_USERNAME,MAIL_PASSWORD,MAIL_FROM_ADDRESS,MAIL_FROM_NAME
+          envs: REPOSITORY,GITHUB_REPOSITORY,GHCR_USERNAME,GHCR_PAT,APP_ENV,APP_NAME,APP_DEBUG,ADMIN_EMAIL,ADMIN_USERNAME,ADMIN_PASSWORD,MAIL_USERNAME,MAIL_PASSWORD,MAIL_FROM_ADDRESS,MAIL_FROM_NAME
           port: ${{ secrets.PORT }}
           script: |
               set -e
@@ -72,5 +74,7 @@ jobs:
                 sudo mkdir -p database
                 sudo touch database/database.sqlite
                 sudo chown -R $USER:$USER database
+                echo "GHCR_PAT" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+                sudo docker compose -f prod.docker-compose.yml pull
                 sudo docker compose -f prod.docker-compose.yml up -d
 
