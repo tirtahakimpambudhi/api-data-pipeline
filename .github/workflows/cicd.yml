@@ -139,7 +139,7 @@ jobs:
             cd "$APP_DIR"
 
             # Login to GitHub Container Registry
-            echo "$GHCR_PAT" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            echo "\$GHCR_PAT" | docker login ghcr.io -u "\$GHCR_USERNAME" --password-stdin
 
             # Generate .env file
             envsubst '
