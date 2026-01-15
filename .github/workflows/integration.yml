@@ -95,4 +95,3 @@ jobs:
             $APP_IMAGE
             $WEB_SERVER_IMAGE
           ' < docker-compose.tpl.yaml > prod.docker-compose.yaml
-          cat prod.docker-compose.yaml
