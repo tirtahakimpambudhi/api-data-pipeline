@@ -71,7 +71,6 @@ jobs:
         run: |
           export APP_IMAGE=ghcr.io/${{ github.repository }}-php:${{ github.sha }}
           export WEB_SERVER_IMAGE=ghcr.io/${{ github.repository }}-nginx:${{ github.sha }}
-
           envsubst '
             $APP_IMAGE
             $WEB_SERVER_IMAGE
@@ -93,15 +92,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: prod-compose
-      - name: Debug SSH inputs
+
+      - name: Setup SSH
         run: |
-          echo "USERNAME='${{ secrets.USERNAME }}'"
-          echo "HOST='${{ secrets.HOST }}'"
-          echo "PORT='${{ secrets.PORT }}'"
-          
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
       - name: Deploy to VPS
-        uses: appleboy/ssh-action@v1.2.4
         env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USERNAME }}
+
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
 
@@ -119,36 +123,25 @@ jobs:
           MAIL_FROM_ADDRESS: ${{ secrets.MAIL_USERNAME }}
           MAIL_FROM_NAME: ${{ vars.APP_NAME }}
 
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ubuntu
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          command_timeout: 1h
+          REPO_NAME: ${{ github.repository }}
 
-          envs: |
-            GHCR_USERNAME
-            GHCR_PAT
-            APP_ENV
-            APP_KEY
-            APP_NAME
-            APP_DEBUG
-            ADMIN_EMAIL
-            ADMIN_USERNAME
-            ADMIN_PASSWORD
-            MAIL_USERNAME
-            MAIL_PASSWORD
-            MAIL_FROM_ADDRESS
-            MAIL_FROM_NAME
+        run: |
+          # Transfer docker-compose file
+          scp -P $SSH_PORT -i ~/.ssh/deploy_key \
+            prod.docker-compose.yml \
+            $SSH_USER@$SSH_HOST:/opt/$(basename $REPO_NAME)/prod.docker-compose.yml
 
-          script: |
+          # Execute deployment script
+          ssh -p $SSH_PORT -i ~/.ssh/deploy_key $SSH_USER@$SSH_HOST << 'ENDSSH'
             set -e
 
             APP_DIR="/opt/$(basename '${{ github.repository }}')"
             cd "$APP_DIR"
 
+            # Login to GitHub Container Registry
             echo "$GHCR_PAT" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
+            # Generate .env file
             envsubst '
               $APP_ENV
               $APP_KEY
@@ -163,8 +156,19 @@ jobs:
               $MAIL_FROM_NAME
             ' < .env.example > .env
 
+            # Setup database
             mkdir -p database
             touch database/database.sqlite
 
+            # Deploy with Docker Compose
             docker compose -f prod.docker-compose.yml pull
             docker compose -f prod.docker-compose.yml up -d
+
+            # Show status
+            docker compose -f prod.docker-compose.yml ps
+          ENDSSH
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f ~/.ssh/deploy_key
