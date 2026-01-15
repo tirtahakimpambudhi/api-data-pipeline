@@ -97,8 +97,8 @@ jobs:
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1
         env:
-          GHCR_USERNAME: ${{ github.actor }}
-          GHCR_PAT: ${{ secrets.GH_PAT }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
 
           APP_ENV: ${{ vars.APP_ENV }}
           APP_KEY: ${{ secrets.APP_KEY }}
