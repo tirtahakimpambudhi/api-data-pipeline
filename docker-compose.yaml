@@ -1,7 +1,7 @@
 
 services:
   app:
-    container_name: app-nginx-aino-svc-conf
+    container_name: app-nginx-svc-conf
     networks:
       - app-network
     build:
@@ -30,7 +30,7 @@ services:
 
 
   nginx:
-    container_name: nginx-aino-svc-conf
+    container_name: nginx-svc-conf
     build:
       context: .
       dockerfile: ./Dockerfile
