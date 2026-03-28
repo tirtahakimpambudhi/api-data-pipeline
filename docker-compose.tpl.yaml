@@ -1,7 +1,7 @@
 
 services:
   app:
-    container_name: app-nginx-aino-svc-conf
+    container_name: app-nginx-svc-conf
     networks:
       - app-network
     image: ${APP_IMAGE}
@@ -27,7 +27,7 @@ services:
 
 
   nginx:
-    container_name: nginx-aino-svc-conf
+    container_name: nginx-svc-conf
     image: ${WEB_SERVER_IMAGE}
     networks: [app-network]
     depends_on:
